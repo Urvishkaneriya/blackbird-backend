@@ -598,6 +598,135 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "📋 Booking Management",
+      "item": [
+        {
+          "name": "Create Booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Booking created successfully', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.eql('Booking created successfully');",
+                  "    pm.expect(jsonData.data).to.have.property('_id');",
+                  "    pm.expect(jsonData.data).to.have.property('bookingNumber');",
+                  "    pm.expect(jsonData.data).to.have.property('userId');",
+                  "    ",
+                  "    // Save booking ID for other tests",
+                  "    pm.environment.set('lastCreatedBookingId', jsonData.data._id);",
+                  "    ",
+                  "    console.log('✅ Booking created:', jsonData.data.bookingNumber);",
+                  "    console.log('Customer phone:', jsonData.data.phone);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{testCustomerPhone}}\",\n  \"email\": \"customer@example.com\",\n  \"fullName\": \"Jane Customer\",\n  \"amount\": 5000,\n  \"artistName\": \"Mike Tattoo Artist\",\n  \"paymentMethod\": \"Cash\",\n  \"branchId\": \"{{lastCreatedBranchId}}\",\n  \"employeeId\": \"{{lastCreatedEmployeeId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bookings"]
+            },
+            "description": "Create a new booking/invoice (Admin and Employee can create)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Bookings",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Bookings list returned', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('count');",
+                  "    pm.expect(jsonData.data).to.have.property('bookings');",
+                  "    pm.expect(jsonData.data.bookings).to.be.an('array');",
+                  "    ",
+                  "    console.log('✅ Found', jsonData.data.count, 'bookings');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bookings"]
+            },
+            "description": "Get bookings (Admin sees all, Employee sees their branch bookings)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👤 User Management",
+      "item": [
+        {
+          "name": "Get All Users",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Users list returned', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('count');",
+                  "    pm.expect(jsonData.data).to.have.property('users');",
+                  "    pm.expect(jsonData.data.users).to.be.an('array');",
+                  "    ",
+                  "    console.log('✅ Found', jsonData.data.count, 'customers');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Get all customers (Admin only)"
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }

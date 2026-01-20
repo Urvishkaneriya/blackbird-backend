@@ -19,6 +19,15 @@ const EMPLOYEE_NUMBER_PREFIX = 'EMP';
 // Branch Number Configuration
 const BRANCH_NUMBER_PREFIX = 'BRANCH';
 
+// Booking Number Configuration
+const BOOKING_NUMBER_PREFIX = 'INV';
+
+// Payment Methods
+const PAYMENT_METHODS = {
+  CASH: 'CASH',
+  UPI: 'UPI',
+};
+
 // Response Messages
 const MESSAGES = {
   // Auth Messages
@@ -51,6 +60,15 @@ const MESSAGES = {
   BRANCH_NOT_FOUND: 'Branch not found',
   BRANCH_ALREADY_EXISTS: 'Branch with this name already exists',
 
+  // Booking Messages
+  BOOKING_CREATED: 'Booking created successfully',
+  BOOKINGS_FETCHED: 'Bookings fetched successfully',
+  BOOKING_NOT_FOUND: 'Booking not found',
+
+  // User Messages
+  USERS_FETCHED: 'Users fetched successfully',
+  USER_NOT_FOUND: 'User not found',
+
   // General Messages
   SERVER_ERROR: 'Internal server error',
   VALIDATION_ERROR: 'Validation error',
@@ -82,6 +100,8 @@ module.exports = {
   BCRYPT_SALT_ROUNDS,
   EMPLOYEE_NUMBER_PREFIX,
   BRANCH_NUMBER_PREFIX,
+  BOOKING_NUMBER_PREFIX,
+  PAYMENT_METHODS,
   MESSAGES,
   STATUS_CODES,
   VALIDATION,

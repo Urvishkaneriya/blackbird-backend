@@ -10,6 +10,8 @@ const { errorHandler, notFoundHandler } = require('./src/middlewares/error.middl
 const authRoutes = require('./src/routes/auth.routes');
 const employeeRoutes = require('./src/routes/employee.routes');
 const branchRoutes = require('./src/routes/branch.routes');
+const bookingRoutes = require('./src/routes/booking.routes');
+const userRoutes = require('./src/routes/user.routes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -81,6 +83,8 @@ app.get('/', (req, res) => {
         auth: '/api/auth',
         employees: '/api/employees',
         branches: '/api/branches',
+        bookings: '/api/bookings',
+        users: '/api/users',
       }
     }
   });
@@ -90,6 +94,8 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/branches', branchRoutes);
+app.use('/api/bookings', bookingRoutes);
+app.use('/api/users', userRoutes);
 
 // 404 handler - must be after all routes
 app.use(notFoundHandler);
