@@ -1,4 +1,5 @@
 const Employee = require('../models/employee.model');
+const branchService = require('./branch.service');
 const { hashPassword } = require('../utils/passwordHash');
 
 class EmployeeService {
@@ -44,12 +45,18 @@ class EmployeeService {
    * @returns {Promise<Object>} Created employee document
    */
   async createEmployee(employeeData) {
-    const { fullName, email, phoneNumber, password } = employeeData;
+    const { fullName, email, phoneNumber, password, branchId } = employeeData;
 
     // Check if employee already exists
     const existingEmployee = await this.findByEmail(email);
     if (existingEmployee) {
       throw new Error('Employee already exists with this email');
+    }
+
+    // Verify branch exists
+    const branch = await branchService.findById(branchId);
+    if (!branch) {
+      throw new Error('Branch not found');
     }
 
     // Hash password
@@ -61,9 +68,15 @@ class EmployeeService {
       email: email.toLowerCase(),
       phoneNumber,
       password: hashedPassword,
+      branchId,
     });
 
-    return await employee.save();
+    const savedEmployee = await employee.save();
+
+    // Increment branch employee count
+    await branchService.incrementEmployeeCount(branchId);
+
+    return savedEmployee;
   }
 
   /**
@@ -82,6 +95,12 @@ class EmployeeService {
    * @returns {Promise<Object>} Updated employee document
    */
   async updateEmployee(id, updateData) {
+    // Get current employee data
+    const currentEmployee = await this.findById(id);
+    if (!currentEmployee) {
+      throw new Error('Employee not found');
+    }
+
     // Don't allow updating immutable fields
     delete updateData.uniqueId;
     delete updateData.employeeNumber;
@@ -101,6 +120,21 @@ class EmployeeService {
       updateData.email = updateData.email.toLowerCase();
     }
 
+    // Handle branch change
+    if (updateData.branchId && updateData.branchId !== currentEmployee.branchId.toString()) {
+      // Verify new branch exists
+      const newBranch = await branchService.findById(updateData.branchId);
+      if (!newBranch) {
+        throw new Error('Branch not found');
+      }
+
+      // Decrement old branch count
+      await branchService.decrementEmployeeCount(currentEmployee.branchId);
+
+      // Increment new branch count
+      await branchService.incrementEmployeeCount(updateData.branchId);
+    }
+
     return await Employee.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
@@ -113,7 +147,21 @@ class EmployeeService {
    * @returns {Promise<Object>} Deleted employee document
    */
   async deleteEmployee(id) {
-    return await Employee.findByIdAndDelete(id);
+    // Get employee to access branchId
+    const employee = await this.findById(id);
+    if (!employee) {
+      throw new Error('Employee not found');
+    }
+
+    // Delete employee
+    const deletedEmployee = await Employee.findByIdAndDelete(id);
+
+    // Decrement branch employee count
+    if (deletedEmployee) {
+      await branchService.decrementEmployeeCount(employee.branchId);
+    }
+
+    return deletedEmployee;
   }
 
   /**

@@ -16,6 +16,9 @@ const BCRYPT_SALT_ROUNDS = 10;
 // Employee Number Configuration
 const EMPLOYEE_NUMBER_PREFIX = 'EMP';
 
+// Branch Number Configuration
+const BRANCH_NUMBER_PREFIX = 'BRANCH';
+
 // Response Messages
 const MESSAGES = {
   // Auth Messages
@@ -39,6 +42,14 @@ const MESSAGES = {
   // Admin Messages
   ADMIN_SEEDED: 'Admin user created successfully',
   ADMIN_EXISTS: 'Admin user already exists',
+
+  // Branch Messages
+  BRANCH_CREATED: 'Branch created successfully',
+  BRANCH_UPDATED: 'Branch updated successfully',
+  BRANCHES_FETCHED: 'Branches fetched successfully',
+  BRANCH_FETCHED: 'Branch fetched successfully',
+  BRANCH_NOT_FOUND: 'Branch not found',
+  BRANCH_ALREADY_EXISTS: 'Branch with this name already exists',
 
   // General Messages
   SERVER_ERROR: 'Internal server error',
@@ -70,6 +81,7 @@ module.exports = {
   JWT_CONFIG,
   BCRYPT_SALT_ROUNDS,
   EMPLOYEE_NUMBER_PREFIX,
+  BRANCH_NUMBER_PREFIX,
   MESSAGES,
   STATUS_CODES,
   VALIDATION,

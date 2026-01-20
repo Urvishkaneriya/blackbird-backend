@@ -38,6 +38,11 @@ const employeeSchema = new mongoose.Schema(
       required: [true, 'Password is required'],
       minlength: [VALIDATION.PASSWORD_MIN_LENGTH, `Password must be at least ${VALIDATION.PASSWORD_MIN_LENGTH} characters`],
     },
+    branchId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Branch',
+      required: [true, 'Branch is required'],
+    },
     role: {
       type: String,
       default: ROLES.EMPLOYEE,
@@ -64,6 +69,7 @@ employeeSchema.pre('save', async function (next) {
 employeeSchema.index({ email: 1 });
 employeeSchema.index({ employeeNumber: 1 });
 employeeSchema.index({ uniqueId: 1 });
+employeeSchema.index({ branchId: 1 });
 
 // Remove password from JSON responses
 employeeSchema.methods.toJSON = function () {

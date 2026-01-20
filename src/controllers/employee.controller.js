@@ -15,11 +15,11 @@ class EmployeeController {
    */
   async createEmployee(req, res, next) {
     try {
-      const { fullName, email, phoneNumber, password } = req.body;
+      const { fullName, email, phoneNumber, password, branchId } = req.body;
 
       // Validation
-      if (!fullName || !email || !phoneNumber || !password) {
-        return badRequestResponse(res, 'All fields are required (fullName, email, phoneNumber, password)');
+      if (!fullName || !email || !phoneNumber || !password || !branchId) {
+        return badRequestResponse(res, 'All fields are required (fullName, email, phoneNumber, password, branchId)');
       }
 
       // Create employee
@@ -28,12 +28,16 @@ class EmployeeController {
         email,
         phoneNumber,
         password,
+        branchId,
       });
 
       return createdResponse(res, MESSAGES.EMPLOYEE_CREATED, employee);
     } catch (error) {
       if (error.message.includes('already exists')) {
         return conflictResponse(res, MESSAGES.EMPLOYEE_ALREADY_EXISTS);
+      }
+      if (error.message === 'Branch not found') {
+        return notFoundResponse(res, 'Branch not found');
       }
       next(error);
     }

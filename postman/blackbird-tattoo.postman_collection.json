@@ -235,6 +235,137 @@
       ]
     },
     {
+      "name": "🏢 Branch Management",
+      "item": [
+        {
+          "name": "Create Branch",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Branch created successfully', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.eql('Branch created successfully');",
+                  "    pm.expect(jsonData.data).to.have.property('_id');",
+                  "    pm.expect(jsonData.data).to.have.property('branchNumber');",
+                  "    pm.expect(jsonData.data).to.have.property('employeeCount');",
+                  "    pm.expect(jsonData.data.employeeCount).to.eql(0);",
+                  "    ",
+                  "    // Save branch ID for other tests",
+                  "    pm.environment.set('lastCreatedBranchId', jsonData.data._id);",
+                  "    ",
+                  "    console.log('✅ Branch created:', jsonData.data.branchNumber);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Downtown Branch\",\n  \"address\": \"123 Main Street, City, State 12345\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/branches",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "branches"]
+            },
+            "description": "Create a new branch (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Branches",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Branches list returned', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('count');",
+                  "    pm.expect(jsonData.data).to.have.property('branches');",
+                  "    pm.expect(jsonData.data.branches).to.be.an('array');",
+                  "    ",
+                  "    console.log('✅ Found', jsonData.data.count, 'branches');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/branches",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "branches"]
+            },
+            "description": "Get all branches (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Branch",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Branch updated successfully', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.eql('Branch updated successfully');",
+                  "    ",
+                  "    console.log('✅ Branch updated');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Downtown Branch - Updated\",\n  \"address\": \"123 Main Street, Updated City, State 12345\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/branches/{{lastCreatedBranchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "branches", "{{lastCreatedBranchId}}"]
+            },
+            "description": "Update branch details (Admin only). Note: employeeCount and branchNumber cannot be updated."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "👥 Employee Management",
       "item": [
         {
@@ -274,7 +405,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"phoneNumber\": \"1234567890\",\n  \"password\": \"password123\"\n}"
+              "raw": "{\n  \"fullName\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"phoneNumber\": \"1234567890\",\n  \"password\": \"password123\",\n  \"branchId\": \"{{lastCreatedBranchId}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/employees",
