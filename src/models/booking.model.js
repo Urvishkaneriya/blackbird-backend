@@ -33,6 +33,11 @@ const bookingSchema = new mongoose.Schema(
       required: [true, 'Amount is required'],
       min: [0, 'Amount must be a positive number'],
     },
+    size: {
+      type: Number,
+      required: [true, 'Size is required'],
+      min: [0, 'Size must be a positive number'],
+    },
     artistName: {
       type: String,
       required: [true, 'Artist name is required'],
@@ -51,10 +56,10 @@ const bookingSchema = new mongoose.Schema(
       ref: 'Branch',
       required: [true, 'Branch is required'],
     },
+    // Creator id (admin or employee) - set from authenticated user
     employeeId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Employee',
-      required: [true, 'Employee is required'],
+      required: [true, 'Creator is required'],
     },
     userId: {
       type: mongoose.Schema.Types.ObjectId,

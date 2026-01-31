@@ -20,17 +20,17 @@ class BookingController {
         email,
         fullName,
         amount,
+        size,
         artistName,
         paymentMethod,
         branchId,
-        employeeId,
       } = req.body;
 
-      // Validation
-      if (!phone || !fullName || !amount || !artistName || !paymentMethod || !branchId || !employeeId) {
+      // Validation (employeeId = creator, set from token)
+      if (!phone || !fullName || !amount || size === undefined || size === null || !artistName || !paymentMethod || !branchId) {
         return badRequestResponse(
           res,
-          'All required fields must be provided (phone, fullName, amount, artistName, paymentMethod, branchId, employeeId)'
+          'All required fields must be provided (phone, fullName, amount, size, artistName, paymentMethod, branchId)'
         );
       }
 
@@ -42,25 +42,23 @@ class BookingController {
         );
       }
 
-      // Create booking
+      // Create booking (employeeId = creator id from token - admin or employee)
       const booking = await bookingService.createBooking({
         phone,
         email,
         fullName,
         amount,
+        size,
         artistName,
         paymentMethod,
         branchId,
-        employeeId,
+        employeeId: req.user.id,
       });
 
       return createdResponse(res, MESSAGES.BOOKING_CREATED, booking);
     } catch (error) {
       if (error.message === 'Branch not found') {
         return notFoundResponse(res, 'Branch not found');
-      }
-      if (error.message === 'Employee not found') {
-        return notFoundResponse(res, 'Employee not found');
       }
       next(error);
     }

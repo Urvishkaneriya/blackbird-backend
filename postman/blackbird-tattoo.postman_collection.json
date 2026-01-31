@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Blackbird Tattoo API",
-    "description": "Complete API collection for Blackbird Tattoo Backend with auto token management",
+    "description": "Complete API collection for Blackbird Tattoo Backend. User identity (id, role) comes from JWT only - never pass current user id in body or query. 1) Login (Admin or Employee) to get token → token is auto-saved. 2) All other requests use Bearer {{token}} for auth; server reads user id and role from token.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "blackbird-tattoo"
   },
@@ -136,7 +136,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "login"]
             },
-            "description": "Login as admin user. Token is automatically saved to environment."
+            "description": "Login as admin. Token (with user id and role) is auto-saved. All other APIs use this token - never pass user id in body or query."
           },
           "response": []
         },
@@ -186,7 +186,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "login"]
             },
-            "description": "Login as employee user"
+            "description": "Login as employee. Token (with user id and role) is auto-saved. All other APIs use this token - never pass user id in body or query."
           },
           "response": []
         },
@@ -228,7 +228,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "me"]
             },
-            "description": "Get current authenticated user's full information"
+            "description": "Get current user's full info. User id and role come from token - no body/query needed."
           },
           "response": []
         }
@@ -619,12 +619,14 @@
                   "    pm.expect(jsonData.data).to.have.property('_id');",
                   "    pm.expect(jsonData.data).to.have.property('bookingNumber');",
                   "    pm.expect(jsonData.data).to.have.property('userId');",
+                  "    pm.expect(jsonData.data).to.have.property('size');",
                   "    ",
                   "    // Save booking ID for other tests",
                   "    pm.environment.set('lastCreatedBookingId', jsonData.data._id);",
                   "    ",
                   "    console.log('✅ Booking created:', jsonData.data.bookingNumber);",
                   "    console.log('Customer phone:', jsonData.data.phone);",
+                  "    console.log('Size:', jsonData.data.size);",
                   "});"
                 ]
               }
@@ -640,14 +642,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone\": \"{{testCustomerPhone}}\",\n  \"email\": \"customer@example.com\",\n  \"fullName\": \"Jane Customer\",\n  \"amount\": 5000,\n  \"artistName\": \"Mike Tattoo Artist\",\n  \"paymentMethod\": \"Cash\",\n  \"branchId\": \"{{lastCreatedBranchId}}\",\n  \"employeeId\": \"{{lastCreatedEmployeeId}}\"\n}"
+              "raw": "{\n  \"phone\": \"{{testCustomerPhone}}\",\n  \"email\": \"customer@example.com\",\n  \"fullName\": \"Jane Customer\",\n  \"amount\": 5000,\n  \"size\": 5,\n  \"artistName\": \"Mike Tattoo Artist\",\n  \"paymentMethod\": \"CASH\",\n  \"branchId\": \"{{lastCreatedBranchId}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/bookings",
               "host": ["{{baseUrl}}"],
               "path": ["api", "bookings"]
             },
-            "description": "Create a new booking/invoice (Admin and Employee can create)"
+            "description": "Create a new booking/invoice. Required: phone, fullName, amount, size, artistName, paymentMethod (CASH or UPI), branchId. Optional: email. employeeId (creator) is set from the authenticated user - admin or employee id from token."
           },
           "response": []
         },
@@ -668,6 +670,11 @@
                   "    pm.expect(jsonData.data).to.have.property('bookings');",
                   "    pm.expect(jsonData.data.bookings).to.be.an('array');",
                   "    ",
+                  "    // Each booking should have size if any exist",
+                  "    if (jsonData.data.bookings.length > 0) {",
+                  "        pm.expect(jsonData.data.bookings[0]).to.have.property('size');",
+                  "    }",
+                  "    ",
                   "    console.log('✅ Found', jsonData.data.count, 'bookings');",
                   "});"
                 ]
@@ -682,7 +689,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "bookings"]
             },
-            "description": "Get bookings (Admin sees all, Employee sees their branch bookings)"
+            "description": "Get bookings. User id and role from token - Admin sees all, Employee sees their branch only. No body/query for user id."
           },
           "response": []
         }

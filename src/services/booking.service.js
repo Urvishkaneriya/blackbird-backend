@@ -2,6 +2,7 @@ const Booking = require('../models/booking.model');
 const userService = require('./user.service');
 const branchService = require('./branch.service');
 const employeeService = require('./employee.service');
+const whatsappService = require('./whatsapp.service');
 
 class BookingService {
   /**
@@ -15,6 +16,7 @@ class BookingService {
       email,
       fullName,
       amount,
+      size,
       artistName,
       paymentMethod,
       branchId,
@@ -27,11 +29,7 @@ class BookingService {
       throw new Error('Branch not found');
     }
 
-    // Verify employee exists
-    const employee = await employeeService.findById(employeeId);
-    if (!employee) {
-      throw new Error('Employee not found');
-    }
+    // employeeId = creator id (admin or employee), no ref validation
 
     // Find or create user by phone
     let user = await userService.findByPhone(phone);
@@ -54,12 +52,13 @@ class BookingService {
       await userService.updateUserStats(user._id, amount);
     }
 
-    // Create booking
+    // Create booking (employeeId = creator id - admin or employee from token)
     const booking = new Booking({
       phone,
       email,
       fullName,
       amount,
+      size,
       artistName,
       paymentMethod,
       branchId,
@@ -68,7 +67,30 @@ class BookingService {
       date: new Date(),
     });
 
-    return await booking.save();
+    const savedBooking = await booking.save();
+
+    // Send WhatsApp message (don't fail booking if this fails)
+    try {
+      // Populate branch for message
+      const bookingWithBranch = await Booking.findById(savedBooking._id)
+        .populate('branchId', 'name branchNumber');
+      
+      await whatsappService.sendInvoiceMessage("+91" + phone, {
+        bookingNumber: bookingWithBranch.bookingNumber,
+        fullName: bookingWithBranch.fullName,
+        amount: bookingWithBranch.amount,
+        size: bookingWithBranch.size,
+        paymentMethod: bookingWithBranch.paymentMethod,
+        artistName: bookingWithBranch.artistName,
+        date: bookingWithBranch.date,
+        branchId: bookingWithBranch.branchId,
+      });
+    } catch (whatsappError) {
+      // Log error but don't fail booking creation
+      console.error('⚠️ WhatsApp notification failed, but booking was created:', whatsappError.message);
+    }
+
+    return savedBooking;
   }
 
   /**
@@ -78,7 +100,6 @@ class BookingService {
   async getAllBookings() {
     return await Booking.find()
       .populate('branchId', 'name branchNumber')
-      .populate('employeeId', 'fullName employeeNumber')
       .populate('userId', 'fullName phone email')
       .sort({ date: -1 });
   }
@@ -91,7 +112,6 @@ class BookingService {
   async getBookingsByBranch(branchId) {
     return await Booking.find({ branchId })
       .populate('branchId', 'name branchNumber')
-      .populate('employeeId', 'fullName employeeNumber')
       .populate('userId', 'fullName phone email')
       .sort({ date: -1 });
   }
@@ -104,7 +124,6 @@ class BookingService {
   async getBookingsByEmployee(employeeId) {
     return await Booking.find({ employeeId })
       .populate('branchId', 'name branchNumber')
-      .populate('employeeId', 'fullName employeeNumber')
       .populate('userId', 'fullName phone email')
       .sort({ date: -1 });
   }
@@ -117,7 +136,6 @@ class BookingService {
   async findById(id) {
     return await Booking.findById(id)
       .populate('branchId', 'name branchNumber')
-      .populate('employeeId', 'fullName employeeNumber')
       .populate('userId', 'fullName phone email');
   }
 

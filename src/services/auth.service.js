@@ -33,9 +33,9 @@ class AuthService {
       throw new Error('Invalid email or password');
     }
 
-    // Generate JWT token
+    // Generate JWT token (id from user - no need to pass user id in any API)
     const tokenPayload = {
-      id: user._id,
+      id: user._id.toString(),
       email: user.email,
       role: userRole,
     };
@@ -44,7 +44,7 @@ class AuthService {
 
     // Prepare user data (without password)
     const userData = {
-      id: user._id,
+      id: user._id.toString(),
       name: user.name || user.fullName,
       email: user.email,
       role: userRole,
