@@ -82,7 +82,17 @@
         },
         "description": "Check if server and database are running properly"
       },
-      "response": []
+      "response": [
+        {
+          "name": "Success",
+          "originalRequest": { "method": "GET", "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] } },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [ { "key": "Content-Type", "value": "application/json" } ],
+          "body": "{\n  \"message\": \"Server is healthy\",\n  \"data\": {\n    \"database\": { \"status\": \"connected\", \"name\": \"blackbird\", \"host\": \"localhost\" },\n    \"server\": { \"uptime\": 123.45, \"environment\": \"development\", \"timestamp\": \"2026-01-19T10:00:00.000Z\" }\n  }\n}"
+        }
+      ]
     },
     {
       "name": "🔐 Authentication",
@@ -138,7 +148,17 @@
             },
             "description": "Login as admin. Token (with user id and role) is auto-saved. All other APIs use this token - never pass user id in body or query."
           },
-          "response": []
+          "response": [
+            {
+              "name": "Success",
+              "originalRequest": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "raw": "{\"email\": \"admin@blackbird.com\", \"password\": \"admin123456\"}" }, "url": { "raw": "{{baseUrl}}/api/auth/login", "path": ["api", "auth", "login"] } },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\\n  \"message\": \"Login successful\",\\n  \"data\": {\\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\\n    \"user\": { \"id\": \"678a1234567890abcdef\", \"name\": \"Admin User\", \"email\": \"admin@blackbird.com\", \"role\": \"admin\" }\\n  }\\n}"
+            }
+          ]
         },
         {
           "name": "Login - Employee",
@@ -188,7 +208,16 @@
             },
             "description": "Login as employee. Token (with user id and role) is auto-saved. All other APIs use this token - never pass user id in body or query."
           },
-          "response": []
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Login successful\", \"data\": {\"token\": \"eyJ...\", \"user\": {\"id\": \"678abc\", \"name\": \"John Doe\", \"email\": \"john@example.com\", \"role\": \"employee\", \"employeeNumber\": \"EMP0001\"}}}"
+            }
+          ]
         },
         {
           "name": "Get Current User",
@@ -230,7 +259,16 @@
             },
             "description": "Get current user's full info. User id and role come from token - no body/query needed."
           },
-          "response": []
+          "response": [
+            {
+              "name": "Success (Admin)",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"User information fetched successfully\", \"data\": {\"_id\": \"678a123\", \"name\": \"Admin User\", \"email\": \"admin@blackbird.com\", \"role\": \"admin\", \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T10:00:00.000Z\"}}"
+            }
+          ]
         }
       ]
     },
@@ -284,7 +322,16 @@
             },
             "description": "Create a new branch (Admin only)"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Success",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Branch created successfully\", \"data\": {\"_id\": \"678b001\", \"name\": \"Downtown Branch\", \"address\": \"123 Main Street\", \"branchNumber\": \"BRANCH0001\", \"employeeCount\": 0, \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T10:00:00.000Z\"}}"
+            }
+          ]
         },
         {
           "name": "Get All Branches",
@@ -319,7 +366,16 @@
             },
             "description": "Get all branches (Admin only)"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Branches fetched successfully\", \"data\": {\"count\": 1, \"branches\": [{\"_id\": \"678b001\", \"name\": \"Downtown Branch\", \"address\": \"123 Main Street\", \"branchNumber\": \"BRANCH0001\", \"employeeCount\": 0}]}}"
+            }
+          ]
         },
         {
           "name": "Update Branch",
@@ -361,7 +417,16 @@
             },
             "description": "Update branch details (Admin only). Note: employeeCount and branchNumber cannot be updated."
           },
-          "response": []
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Branch updated successfully\", \"data\": {\"_id\": \"678b001\", \"name\": \"Downtown Branch - Updated\", \"address\": \"123 Main Street, Updated\", \"branchNumber\": \"BRANCH0001\", \"employeeCount\": 0}}"
+            }
+          ]
         }
       ]
     },
@@ -414,7 +479,16 @@
             },
             "description": "Create a new employee (Admin only)"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Success",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Employee created successfully\", \"data\": {\"_id\": \"678e001\", \"uniqueId\": \"550e8400-e29b-41d4-a716-446655440000\", \"fullName\": \"John Doe\", \"email\": \"john.doe@example.com\", \"phoneNumber\": \"1234567890\", \"employeeNumber\": \"EMP0001\", \"branchId\": \"678b001\", \"role\": \"employee\", \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T10:00:00.000Z\"}}"
+            }
+          ]
         },
         {
           "name": "Get All Employees",
@@ -449,7 +523,16 @@
             },
             "description": "Get all employees (Admin only)"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Employees fetched successfully\", \"data\": {\"count\": 1, \"employees\": [{\"_id\": \"678e001\", \"fullName\": \"John Doe\", \"email\": \"john.doe@example.com\", \"phoneNumber\": \"1234567890\", \"employeeNumber\": \"EMP0001\", \"branchId\": \"678b001\", \"role\": \"employee\"}]}}"
+            }
+          ]
         },
         {
           "name": "Get Employee by ID",
@@ -482,7 +565,16 @@
             },
             "description": "Get single employee by ID (Admin only)"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Employee fetched successfully\", \"data\": {\"_id\": \"678e001\", \"fullName\": \"John Doe\", \"email\": \"john.doe@example.com\", \"phoneNumber\": \"1234567890\", \"employeeNumber\": \"EMP0001\", \"branchId\": \"678b001\", \"role\": \"employee\"}}"
+            }
+          ]
         },
         {
           "name": "Update Employee",
@@ -524,7 +616,16 @@
             },
             "description": "Update employee details (Admin only)"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Employee updated successfully\", \"data\": {\"_id\": \"678e001\", \"fullName\": \"John Doe Updated\", \"email\": \"john.doe@example.com\", \"phoneNumber\": \"9999999999\", \"employeeNumber\": \"EMP0001\", \"branchId\": \"678b001\", \"role\": \"employee\"}}"
+            }
+          ]
         },
         {
           "name": "Search Employees",
@@ -562,7 +663,16 @@
             },
             "description": "Search employees by name, email, phone, or employee number (Admin only)"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Employees fetched successfully\", \"data\": {\"count\": 1, \"employees\": [{\"_id\": \"678e001\", \"fullName\": \"John Doe\", \"email\": \"john.doe@example.com\", \"employeeNumber\": \"EMP0001\"}]}}"
+            }
+          ]
         },
         {
           "name": "Delete Employee",
@@ -595,7 +705,16 @@
             },
             "description": "Delete an employee (Admin only)"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Employee deleted successfully\", \"data\": {\"deletedEmployee\": {\"id\": \"678e001\", \"fullName\": \"John Doe\", \"email\": \"john.doe@example.com\", \"employeeNumber\": \"EMP0001\"}}}"
+            }
+          ]
         }
       ]
     },
@@ -651,7 +770,16 @@
             },
             "description": "Create a new booking/invoice. Required: phone, fullName, amount, size, artistName, paymentMethod (CASH or UPI), branchId. Optional: email. employeeId (creator) is set from the authenticated user - admin or employee id from token."
           },
-          "response": []
+          "response": [
+            {
+              "name": "Success",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Booking created successfully\", \"data\": {\"_id\": \"678bk001\", \"bookingNumber\": \"INV0001\", \"phone\": \"9876543210\", \"fullName\": \"Jane Customer\", \"amount\": 5000, \"size\": 5, \"artistName\": \"Mike Tattoo Artist\", \"paymentMethod\": \"CASH\", \"branchId\": \"678b001\", \"employeeId\": \"678a123\", \"userId\": \"678u001\", \"date\": \"2026-01-19T10:00:00.000Z\", \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T10:00:00.000Z\"}}"
+            }
+          ]
         },
         {
           "name": "Get Bookings",
@@ -691,7 +819,16 @@
             },
             "description": "Get bookings. User id and role from token - Admin sees all, Employee sees their branch only. No body/query for user id."
           },
-          "response": []
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Bookings fetched successfully\", \"data\": {\"count\": 1, \"bookings\": [{\"_id\": \"678bk001\", \"bookingNumber\": \"INV0001\", \"phone\": \"9876543210\", \"fullName\": \"Jane Customer\", \"amount\": 5000, \"size\": 5, \"artistName\": \"Mike Tattoo Artist\", \"paymentMethod\": \"CASH\", \"branchId\": {\"name\": \"Downtown Branch\", \"branchNumber\": \"BRANCH0001\"}, \"userId\": {\"fullName\": \"Jane Customer\", \"phone\": \"9876543210\", \"email\": \"customer@example.com\"}}]}}"
+            }
+          ]
         }
       ]
     },
@@ -731,7 +868,16 @@
             },
             "description": "Get all customers (Admin only)"
           },
-          "response": []
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Users fetched successfully\", \"data\": {\"count\": 1, \"users\": [{\"_id\": \"678u001\", \"fullName\": \"Jane Customer\", \"phone\": \"9876543210\", \"email\": \"customer@example.com\", \"totalOrders\": 2, \"totalAmount\": 10000, \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T10:00:00.000Z\"}]}}"
+            }
+          ]
         }
       ]
     }
