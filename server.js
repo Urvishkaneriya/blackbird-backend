@@ -12,6 +12,7 @@ const employeeRoutes = require('./src/routes/employee.routes');
 const branchRoutes = require('./src/routes/branch.routes');
 const bookingRoutes = require('./src/routes/booking.routes');
 const userRoutes = require('./src/routes/user.routes');
+const dashboardRoutes = require('./src/routes/dashboard.routes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -85,6 +86,7 @@ app.get('/', (req, res) => {
         branches: '/api/branches',
         bookings: '/api/bookings',
         users: '/api/users',
+        dashboard: '/api/dashboard',
       }
     }
   });
@@ -96,6 +98,7 @@ app.use('/api/employees', employeeRoutes);
 app.use('/api/branches', branchRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // 404 handler - must be after all routes
 app.use(notFoundHandler);

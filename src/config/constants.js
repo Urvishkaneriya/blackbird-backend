@@ -69,6 +69,10 @@ const MESSAGES = {
   USERS_FETCHED: 'Users fetched successfully',
   USER_NOT_FOUND: 'User not found',
 
+  // Dashboard Messages
+  DASHBOARD_FETCHED: 'Dashboard data fetched successfully',
+  DASHBOARD_DATE_RANGE_REQUIRED: 'startDate and endDate are required (format: YYYY-MM-DD)',
+
   // General Messages
   SERVER_ERROR: 'Internal server error',
   VALIDATION_ERROR: 'Validation error',

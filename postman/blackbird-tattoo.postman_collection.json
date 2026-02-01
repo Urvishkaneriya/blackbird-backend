@@ -880,6 +880,68 @@
           ]
         }
       ]
+    },
+    {
+      "name": "📊 Dashboard",
+      "item": [
+        {
+          "name": "Get Dashboard",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Dashboard data returned', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.eql('Dashboard data fetched successfully');",
+                  "    pm.expect(jsonData.data).to.have.property('dateRange');",
+                  "    pm.expect(jsonData.data).to.have.property('summary');",
+                  "    pm.expect(jsonData.data).to.have.property('byPaymentMethod');",
+                  "    if (jsonData.data.byBranch) { pm.expect(jsonData.data).to.have.property('totals'); }",
+                  "    if (jsonData.data.branchInfo) { pm.expect(jsonData.data.branchInfo).to.have.property('branchName'); }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard?startDate=2026-01-01&endDate=2026-01-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dashboard"],
+              "query": [
+                { "key": "startDate", "value": "2026-01-01" },
+                { "key": "endDate", "value": "2026-01-31" }
+              ]
+            },
+            "description": "Get dashboard for date range. Admin: full dashboard (summary, byBranch, byPaymentMethod, totals). Employee: branch dashboard for assigned branch (branchInfo, summary, byPaymentMethod). Query: startDate (YYYY-MM-DD), endDate (YYYY-MM-DD). Use Admin token for full dashboard; Employee token for branch dashboard."
+          },
+          "response": [
+            {
+              "name": "Admin – full dashboard",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Dashboard data fetched successfully\", \"data\": {\"dateRange\": {\"startDate\": \"2026-01-01\", \"endDate\": \"2026-01-31\"}, \"summary\": {\"totalBookings\": 15, \"totalRevenue\": 75000, \"uniqueCustomersInRange\": 8, \"averageOrderValue\": 5000}, \"byBranch\": [{\"branchId\": \"678b001\", \"branchName\": \"Downtown Branch\", \"branchNumber\": \"BRANCH0001\", \"employeeCount\": 3, \"bookingCount\": 10, \"revenue\": 50000}, {\"branchId\": \"678b002\", \"branchName\": \"Uptown Branch\", \"branchNumber\": \"BRANCH0002\", \"employeeCount\": 2, \"bookingCount\": 5, \"revenue\": 25000}], \"byPaymentMethod\": [{\"paymentMethod\": \"CASH\", \"count\": 9, \"totalAmount\": 45000}, {\"paymentMethod\": \"UPI\", \"count\": 6, \"totalAmount\": 30000}], \"totals\": {\"totalBranches\": 2, \"totalEmployees\": 5, \"totalCustomers\": 25}}}"
+            },
+            {
+              "name": "Employee – branch dashboard",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Dashboard data fetched successfully\", \"data\": {\"dateRange\": {\"startDate\": \"2026-01-01\", \"endDate\": \"2026-01-31\"}, \"branchInfo\": {\"branchId\": \"678b001\", \"branchName\": \"Downtown Branch\", \"branchNumber\": \"BRANCH0001\", \"employeeCount\": 3}, \"summary\": {\"totalBookings\": 10, \"totalRevenue\": 50000, \"uniqueCustomersInRange\": 6, \"averageOrderValue\": 5000}, \"byPaymentMethod\": [{\"paymentMethod\": \"CASH\", \"count\": 6, \"totalAmount\": 30000}, {\"paymentMethod\": \"UPI\", \"count\": 4, \"totalAmount\": 20000}]}}"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

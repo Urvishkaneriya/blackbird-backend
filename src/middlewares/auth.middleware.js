@@ -1,6 +1,6 @@
 const { verifyToken, shouldRefreshToken, generateToken } = require('../utils/jwt');
 const { unauthorizedResponse } = require('../utils/response');
-const { MESSAGES } = require('../config/constants');
+const { MESSAGES, ROLES } = require('../config/constants');
 const authService = require('../services/auth.service');
 
 /**
@@ -39,6 +39,9 @@ const authenticateToken = async (req, res, next) => {
         email: decoded.email,
         role: decoded.role,
       };
+      if (decoded.role === ROLES.EMPLOYEE && user.branchId) {
+        req.user.branchId = user.branchId.toString();
+      }
     } catch (error) {
       return unauthorizedResponse(res, MESSAGES.UNAUTHORIZED);
     }

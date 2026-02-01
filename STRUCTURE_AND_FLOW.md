@@ -45,17 +45,19 @@ backend/
     │   ├── employee.service.js  # Employee CRUD + branch count updates
     │   ├── branch.service.js    # Branch CRUD + employee count
     │   ├── user.service.js      # User (customer) CRUD + stats
-    │   ├── booking.service.js   # Create booking, find by branch, WhatsApp trigger
-    │   ├── auth.service.js      # Login (admin/employee), verifyUser
-    │   └── whatsapp.service.js  # Send template message (blackbird_invoice)
+│   ├── booking.service.js   # Create booking, find by branch, WhatsApp trigger
+│   ├── auth.service.js      # Login (admin/employee), verifyUser
+│   ├── dashboard.service.js # getDashboardData(startDate, endDate)
+│   └── whatsapp.service.js  # Send template message (blackbird_invoice)
     │
     ├── controllers/
     │   ├── auth.controller.js   # login, getCurrentUser
     │   ├── employee.controller.js
     │   ├── branch.controller.js
-    │   ├── booking.controller.js
-    │   ├── user.controller.js
-    │   └── ...
+│   ├── booking.controller.js
+│   ├── user.controller.js
+│   ├── dashboard.controller.js
+│   └── ...
     │
     ├── middlewares/
     │   ├── auth.middleware.js   # JWT verify, set req.user, optional refresh
@@ -66,8 +68,9 @@ backend/
     │   ├── auth.routes.js       # POST /login, GET /me
     │   ├── employee.routes.js   # CRUD + search (admin only)
     │   ├── branch.routes.js     # Create, get all, update (admin only)
-    │   ├── booking.routes.js    # Create, get (admin all / employee by branch)
-    │   └── user.routes.js       # GET all users (admin only)
+│   ├── booking.routes.js    # Create, get (admin all / employee by branch)
+│   ├── user.routes.js       # GET all users (admin only)
+│   └── dashboard.routes.js  # GET dashboard (admin only, startDate, endDate)
     │
     ├── utils/
     │   ├── response.js          # successResponse, createdResponse, notFoundResponse, etc.
@@ -128,6 +131,7 @@ Every API returns:
 | Create booking    | ✅    | ✅       |
 | Get bookings      | ✅ All | ✅ Own branch only |
 | Get all users     | ✅    | ❌       |
+| Get dashboard     | ✅ (full) | ✅ (branch) |
 
 ---
 
@@ -163,7 +167,25 @@ Every API returns:
 - Deleting an employee decrements branch `employeeCount`.
 - No branch delete API.
 
-### 5.5 Users (customers)
+### 5.5 Dashboard (admin or employee)
+
+- **GET /api/dashboard?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD**
+- Query params: **startDate**, **endDate** (required, format YYYY-MM-DD).
+- Uses **booking.date** for filtering (invoice date).
+- **Admin:** returns full dashboard:
+  - **dateRange:** echoed start/end dates.
+  - **summary:** totalBookings, totalRevenue, uniqueCustomersInRange, averageOrderValue (in range).
+  - **byBranch:** per-branch bookingCount, revenue, branchName, branchNumber, employeeCount (in range).
+  - **byPaymentMethod:** per payment method (CASH, UPI) count and totalAmount (in range).
+  - **totals:** totalBranches, totalEmployees, totalCustomers (snapshot, not date filtered).
+- **Employee:** returns branch dashboard for their assigned branch only:
+  - **dateRange:** echoed start/end dates.
+  - **branchInfo:** branchId, branchName, branchNumber, employeeCount.
+  - **summary:** totalBookings, totalRevenue, uniqueCustomersInRange, averageOrderValue (for that branch in range).
+  - **byPaymentMethod:** per payment method (CASH, UPI) count and totalAmount (for that branch in range).
+  - No **byBranch** or **totals** (single-branch view).
+
+### 5.6 Users (customers)
 
 - **User** is created/updated when a booking is created (by phone).
 - **GET /api/users** (admin only): list all users (customers) with basic fields.
