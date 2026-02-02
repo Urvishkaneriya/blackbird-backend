@@ -89,7 +89,7 @@ class BookingService {
       if (settings.whatsappEnabled) {
         await whatsappService.sendInvoiceMessage('+91' + phone.replace(/\D/g, '').replace(/^91/, ''), payload);
       }
-      if (settings.selfInvoiceMessageEnabled && process.env.WHATSAPP_NUM) {
+      if (settings.whatsappEnabled && settings.selfInvoiceMessageEnabled && process.env.WHATSAPP_NUM) {
         const selfNum = process.env.WHATSAPP_NUM.replace(/\D/g, '').replace(/^91/, '');
         if (selfNum) {
           await whatsappService.sendInvoiceMessage('+91' + selfNum, payload);

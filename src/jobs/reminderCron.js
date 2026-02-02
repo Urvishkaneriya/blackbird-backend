@@ -10,6 +10,9 @@ const whatsappService = require('../services/whatsapp.service');
 async function runReminderJob() {
   try {
     const settings = await settingsService.getSettings();
+    if (!settings.whatsappEnabled) {
+      return;
+    }
     if (!settings.reminderEnabled) {
       console.log('⏰ Reminder cron: reminders disabled in settings');
       return;
