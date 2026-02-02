@@ -45,14 +45,19 @@ class EmployeeController {
 
   /**
    * Get all employees
-   * GET /api/employees
+   * GET /api/employees?branchId=&page=&limit=
    */
   async getAllEmployees(req, res, next) {
     try {
-      const employees = await employeeService.getAllEmployees();
-
+      const { branchId, page, limit } = req.query;
+      const { employees, total } = await employeeService.getEmployees({ branchId, page, limit });
+      const safeLimit = Math.min(Math.max(Number(limit) || 10, 1), 100);
+      const safePage = Math.max(1, parseInt(page, 10) || 1);
       return successResponse(res, MESSAGES.EMPLOYEES_FETCHED, {
         count: employees.length,
+        total,
+        page: safePage,
+        limit: safeLimit,
         employees,
       });
     } catch (error) {

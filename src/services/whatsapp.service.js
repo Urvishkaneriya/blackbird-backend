@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { getBlackbirdInvoicePayload } = require('../utils/whatsappTemplates');
+const { getBlackbirdInvoicePayload, getBlackbirdCheckupReminderPayload } = require('../utils/whatsappTemplates');
 
 class WhatsAppService {
   /**
@@ -10,13 +10,7 @@ class WhatsAppService {
    */
   async sendInvoiceMessage(phone, bookingData) {
     try {
-      // Check if WhatsApp is enabled
-      if (process.env.WHATSAPP_ENABLED !== 'true') {
-        console.log('📱 WhatsApp is disabled in environment');
-        return { success: false, message: 'WhatsApp is disabled' };
-      }
-
-      // Validate required config
+      // Validate required config (enable/disable is controlled by DB settings)
       if (!process.env.WHATSAPP_TOKEN || !process.env.TEST_NUM_ID) {
         console.error('❌ WhatsApp configuration missing');
         return { success: false, message: 'WhatsApp configuration missing' };
@@ -67,12 +61,46 @@ class WhatsAppService {
   }
 
   /**
+   * Send checkup reminder via WhatsApp using blackbird_checkup_reminder template
+   * @param {String} phone - Customer phone number
+   * @param {Object} data - { fullName, daysPassed }
+   * @returns {Promise<Object>} API response
+   */
+  async sendReminderMessage(phone, data) {
+    try {
+      if (!process.env.WHATSAPP_TOKEN || !process.env.TEST_NUM_ID) {
+        return { success: false, message: 'WhatsApp configuration missing' };
+      }
+      const formattedPhone = phone.replace(/\D/g, '');
+      const template = getBlackbirdCheckupReminderPayload(data.fullName, data.daysPassed);
+      const apiUrl = `https://graph.facebook.com/v18.0/${process.env.TEST_NUM_ID}/messages`;
+      const payload = {
+        messaging_product: 'whatsapp',
+        to: formattedPhone,
+        type: 'template',
+        template,
+      };
+      const response = await axios.post(apiUrl, payload, {
+        headers: {
+          Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        timeout: 10000,
+      });
+      console.log('✅ WhatsApp reminder sent:', response.data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error('❌ WhatsApp reminder failed:', { message: error.message, phone });
+      return { success: false, message: error.message };
+    }
+  }
+
+  /**
    * Format phone number for WhatsApp API
    * @param {String} phone - Phone number
    * @returns {String} Formatted phone number
    */
   formatPhoneNumber(phone) {
-    // Remove all non-digit characters
     return phone.replace(/\D/g, '');
   }
 }

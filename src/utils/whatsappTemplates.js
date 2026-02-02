@@ -17,6 +17,7 @@
 // Template names (must match exactly with Meta WhatsApp Business)
 const TEMPLATE_NAMES = {
   BLACKBIRD_INVOICE: 'blackbird_invoice',
+  BLACKBIRD_CHECKUP_REMINDER: 'blackbird_checkup_reminder',
 };
 
 // Default language for templates
@@ -98,9 +99,25 @@ function getBlackbirdInvoicePayload(bookingData) {
   return buildTemplatePayload(TEMPLATE_NAMES.BLACKBIRD_INVOICE, bodyParameters);
 }
 
+/**
+ * Get template payload for blackbird_checkup_reminder
+ * Template: Hello {{1}}, Post-service care update. {{2}} days have passed...
+ * @param {String} fullName - Customer name
+ * @param {Number} daysPassed - Days since tattoo session
+ * @returns {Object} Template payload for API
+ */
+function getBlackbirdCheckupReminderPayload(fullName, daysPassed) {
+  const bodyParameters = [
+    fullName || 'Customer',           // {{1}}
+    String(daysPassed ?? 0),          // {{2}}
+  ];
+  return buildTemplatePayload(TEMPLATE_NAMES.BLACKBIRD_CHECKUP_REMINDER, bodyParameters);
+}
+
 module.exports = {
   TEMPLATE_NAMES,
   DEFAULT_LANGUAGE,
   buildTemplatePayload,
   getBlackbirdInvoicePayload,
+  getBlackbirdCheckupReminderPayload,
 };

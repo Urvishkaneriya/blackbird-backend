@@ -3,6 +3,7 @@ const userService = require('./user.service');
 const branchService = require('./branch.service');
 const employeeService = require('./employee.service');
 const whatsappService = require('./whatsapp.service');
+const settingsService = require('./settings.service');
 
 class BookingService {
   /**
@@ -69,13 +70,12 @@ class BookingService {
 
     const savedBooking = await booking.save();
 
-    // Send WhatsApp message (don't fail booking if this fails)
+    // Send WhatsApp invoice to customer and optionally to self (don't fail booking if this fails)
     try {
-      // Populate branch for message
       const bookingWithBranch = await Booking.findById(savedBooking._id)
         .populate('branchId', 'name branchNumber');
-      
-      await whatsappService.sendInvoiceMessage("+91" + phone, {
+      const settings = await settingsService.getSettings();
+      const payload = {
         bookingNumber: bookingWithBranch.bookingNumber,
         fullName: bookingWithBranch.fullName,
         amount: bookingWithBranch.amount,
@@ -84,9 +84,18 @@ class BookingService {
         artistName: bookingWithBranch.artistName,
         date: bookingWithBranch.date,
         branchId: bookingWithBranch.branchId,
-      });
+      };
+
+      if (settings.whatsappEnabled) {
+        await whatsappService.sendInvoiceMessage('+91' + phone.replace(/\D/g, '').replace(/^91/, ''), payload);
+      }
+      if (settings.selfInvoiceMessageEnabled && process.env.WHATSAPP_NUM) {
+        const selfNum = process.env.WHATSAPP_NUM.replace(/\D/g, '').replace(/^91/, '');
+        if (selfNum) {
+          await whatsappService.sendInvoiceMessage('+91' + selfNum, payload);
+        }
+      }
     } catch (whatsappError) {
-      // Log error but don't fail booking creation
       console.error('⚠️ WhatsApp notification failed, but booking was created:', whatsappError.message);
     }
 
@@ -94,26 +103,44 @@ class BookingService {
   }
 
   /**
-   * Get all bookings
-   * @returns {Promise<Array>} Array of booking documents
+   * Get all bookings with optional filters (branchId, startDate, endDate, pagination)
+   * @param {Object} filters - { branchId?, startDate?, endDate?, page?, limit? }
+   * @returns {Promise<{ bookings: Array, total: Number }>}
    */
-  async getAllBookings() {
-    return await Booking.find()
-      .populate('branchId', 'name branchNumber')
-      .populate('userId', 'fullName phone email')
-      .sort({ date: -1 });
+  async getAllBookings(filters = {}) {
+    const { branchId, startDate, endDate, page = 1, limit = 10 } = filters;
+    const safeLimit = Math.min(Math.max(Number(limit) || 10, 1), 100);
+    const skip = (Math.max(Number(page) || 1, 1) - 1) * safeLimit;
+
+    const query = {};
+    if (branchId) query.branchId = branchId;
+    if (startDate || endDate) {
+      query.date = {};
+      if (startDate) query.date.$gte = new Date(startDate).setHours(0, 0, 0, 0);
+      if (endDate) query.date.$lte = new Date(endDate).setHours(23, 59, 59, 999);
+    }
+
+    const [bookings, total] = await Promise.all([
+      Booking.find(query)
+        .populate('branchId', 'name branchNumber')
+        .populate('userId', 'fullName phone email')
+        .sort({ date: -1 })
+        .skip(skip)
+        .limit(safeLimit)
+        .lean(),
+      Booking.countDocuments(query),
+    ]);
+    return { bookings, total };
   }
 
   /**
-   * Get bookings by branch
+   * Get bookings by branch with optional date filter and pagination
    * @param {String} branchId - Branch ID
-   * @returns {Promise<Array>} Array of booking documents
+   * @param {Object} filters - { startDate?, endDate?, page?, limit? }
+   * @returns {Promise<{ bookings: Array, total: Number }>}
    */
-  async getBookingsByBranch(branchId) {
-    return await Booking.find({ branchId })
-      .populate('branchId', 'name branchNumber')
-      .populate('userId', 'fullName phone email')
-      .sort({ date: -1 });
+  async getBookingsByBranch(branchId, filters = {}) {
+    return this.getAllBookings({ ...filters, branchId });
   }
 
   /**

@@ -1,4 +1,6 @@
 const User = require('../models/user.model');
+const mongoose = require('mongoose');
+const Booking = require('../models/booking.model');
 
 class UserService {
   /**
@@ -68,7 +70,30 @@ class UserService {
   }
 
   /**
-   * Get all users
+   * Get all users (optionally filtered by branchId = users with booking at that branch), with pagination
+   * @param {Object} filters - { branchId?, page?, limit? }
+   * @returns {Promise<{ users: Array, total: Number }>}
+   */
+  async getUsers(filters = {}) {
+    const { branchId, page = 1, limit = 10 } = filters;
+    const safeLimit = Math.min(Math.max(Number(limit) || 10, 1), 100);
+    const skip = (Math.max(Number(page) || 1, 1) - 1) * safeLimit;
+
+    let query = {};
+    if (branchId) {
+      const userIds = await Booking.distinct('userId', { branchId: new mongoose.Types.ObjectId(branchId) });
+      query = { _id: { $in: userIds } };
+    }
+
+    const [users, total] = await Promise.all([
+      User.find(query).sort({ createdAt: -1 }).skip(skip).limit(safeLimit).lean(),
+      User.countDocuments(query),
+    ]);
+    return { users, total };
+  }
+
+  /**
+   * Get all users (no filter) - backward compat
    * @returns {Promise<Array>} Array of user documents
    */
   async getAllUsers() {

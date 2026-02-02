@@ -38,17 +38,19 @@ backend/
     │   ├── employee.model.js    # Employee: fullName, email, phoneNumber, employeeNumber, branchId, etc.
     │   ├── branch.model.js      # Branch: name, address, branchNumber, employeeCount
     │   ├── user.model.js        # User (customer): fullName, phone, email, totalOrders, totalAmount
-    │   └── booking.model.js     # Booking (invoice): phone, fullName, amount, size, artistName, paymentMethod, branchId, employeeId (creator), userId
+    │   ├── booking.model.js     # Booking (invoice): ..., reminderSentAt
+    │   └── settings.model.js   # Single doc: whatsappEnabled, reminderEnabled, reminderTimeDays, selfInvoiceMessageEnabled
     │
     ├── services/
     │   ├── admin.service.js     # Admin CRUD / findByEmail
     │   ├── employee.service.js  # Employee CRUD + branch count updates
     │   ├── branch.service.js    # Branch CRUD + employee count
     │   ├── user.service.js      # User (customer) CRUD + stats
-│   ├── booking.service.js   # Create booking, find by branch, WhatsApp trigger
+│   ├── booking.service.js   # Create booking, get all / by branch (filters, pagination)
 │   ├── auth.service.js      # Login (admin/employee), verifyUser
-│   ├── dashboard.service.js # getDashboardData(startDate, endDate)
-│   └── whatsapp.service.js  # Send template message (blackbird_invoice)
+│   ├── dashboard.service.js # getDashboardData, getBranchDashboardData
+│   ├── settings.service.js  # getSettings, updateSettings, seedSettings
+│   └── whatsapp.service.js  # sendInvoiceMessage, sendReminderMessage (blackbird_invoice, blackbird_checkup_reminder)
     │
     ├── controllers/
     │   ├── auth.controller.js   # login, getCurrentUser
@@ -70,13 +72,17 @@ backend/
     │   ├── branch.routes.js     # Create, get all, update (admin only)
 │   ├── booking.routes.js    # Create, get (admin all / employee by branch)
 │   ├── user.routes.js       # GET all users (admin only)
-│   └── dashboard.routes.js  # GET dashboard (admin only, startDate, endDate)
+│   ├── dashboard.routes.js  # GET dashboard (admin/employee)
+│   └── settings.routes.js   # GET/PUT settings (admin only)
     │
     ├── utils/
     │   ├── response.js          # successResponse, createdResponse, notFoundResponse, etc.
     │   ├── jwt.js               # generateToken, verifyToken, shouldRefreshToken
     │   ├── passwordHash.js      # hashPassword, comparePassword
-    │   └── whatsappTemplates.js # buildTemplatePayload, getBlackbirdInvoicePayload
+    │   └── whatsappTemplates.js # buildTemplatePayload, getBlackbirdInvoicePayload, getBlackbirdCheckupReminderPayload
+    │
+    ├── jobs/
+    │   └── reminderCron.js     # Every 12h: send checkup reminder (settings.reminderEnabled, reminderTimeDays)
     │
     └── scripts/
         └── seedAdmin.js         # On startup: create admin from .env if not exists
@@ -132,6 +138,7 @@ Every API returns:
 | Get bookings      | ✅ All | ✅ Own branch only |
 | Get all users     | ✅    | ❌       |
 | Get dashboard     | ✅ (full) | ✅ (branch) |
+| GET/PUT settings  | ✅        | ❌          |
 
 ---
 
@@ -152,13 +159,13 @@ Every API returns:
 4. Branch and user (customer) are validated/created/updated:
    - Find or create **User** by `phone`; update `totalOrders` and `totalAmount`.
 5. Booking is saved with `userId`, `branchId`, `employeeId` (creator), etc.
-6. WhatsApp: if enabled, send template `blackbird_invoice` via `whatsapp.service.js` (template built in `whatsappTemplates.js`). Failure does not fail the booking.
+6. WhatsApp (driven by **settings**): if `whatsappEnabled`, send template `blackbird_invoice` to customer. If `selfInvoiceMessageEnabled` and env `WHATSAPP_NUM` is set, send same invoice to that number (self). Failure does not fail the booking.
 
 ### 5.3 Get bookings
 
-- **GET /api/bookings** (auth required).
-- **Admin:** all bookings.
-- **Employee:** only bookings for their branch (`employee.branchId` from `req.user.id`).
+- **GET /api/bookings** (auth required). Query: **branchId** (admin only, optional), **startDate**, **endDate** (YYYY-MM-DD), **page**, **limit** (default 10, max 100).
+- **Admin:** all bookings (optional branchId filter). **Employee:** only their branch; date filter and pagination apply.
+- Response: `{ count, total, page, limit, bookings }`.
 
 ### 5.4 Employee & branch counts
 
@@ -188,7 +195,22 @@ Every API returns:
 ### 5.6 Users (customers)
 
 - **User** is created/updated when a booking is created (by phone).
-- **GET /api/users** (admin only): list all users (customers) with basic fields.
+- **GET /api/users** (admin only): list users. Query: **branchId** (optional – users who have a booking at that branch), **page**, **limit**. Response: `{ count, total, page, limit, users }`.
+
+### 5.7 Employees list
+
+- **GET /api/employees** (admin only). Query: **branchId** (optional), **page**, **limit**. Response: `{ count, total, page, limit, employees }`.
+
+### 5.8 Settings (admin only)
+
+- **GET /api/settings** – returns single settings doc: `whatsappEnabled` (default true), `reminderEnabled` (default true), `reminderTimeDays` (default 60, min 1), `selfInvoiceMessageEnabled` (default true).
+- **PUT /api/settings** – body: any of the above fields to update.
+- Settings are seeded on startup if none exist.
+
+### 5.9 Reminder cron
+
+- **Cron:** every 12 hours (node-cron). Reads settings: if `reminderEnabled`, finds bookings where `date` is at least `reminderTimeDays` ago and `reminderSentAt` is null, sends WhatsApp template `blackbird_checkup_reminder` (params: customer name, days passed), then sets `reminderSentAt`.
+- Template: "Hello {{1}}, Post-service care update. {{2}} days have passed since the tattoo session. Follow-up checkup status: pending. Thank you."
 
 ---
 
@@ -200,7 +222,8 @@ Every API returns:
 | employees  | Staff: fullName, email, phoneNumber, employeeNumber, branchId, etc. |
 | branches   | name, address, branchNumber, employeeCount. |
 | users      | Customers: fullName, phone, email, totalOrders, totalAmount. |
-| bookings   | Invoices: customer info, amount, size, artistName, paymentMethod, branchId, employeeId (creator), userId, date. |
+| bookings   | Invoices: ..., date, reminderSentAt. |
+| settings   | Single doc: whatsappEnabled, reminderEnabled, reminderTimeDays, selfInvoiceMessageEnabled. |
 
 - **booking.employeeId** = creator of the invoice (admin or employee id from token).
 - **booking.userId** = customer (User) linked to the booking.
@@ -209,10 +232,12 @@ Every API returns:
 
 ## 7. WhatsApp
 
-- **Config:** `.env`: WHATSAPP_ENABLED, WHATSAPP_TOKEN, TEST_NUM_ID, etc.
-- **Template:** `blackbird_invoice` (name/language/parameters defined in `whatsappTemplates.js`).
-- **Trigger:** After a booking is created; phone is normalized (e.g. +91 prefix in code).
-- **Utility:** `utils/whatsappTemplates.js` – template names, `buildTemplatePayload`, `getBlackbirdInvoicePayload` for consistent, maintainable template usage.
+- **Config:** `.env`: WHATSAPP_TOKEN, TEST_NUM_ID, **WHATSAPP_NUM** (number to receive self-invoice copy). Enable/disable is controlled by DB settings only.
+- **DB settings:** `whatsappEnabled`, `selfInvoiceMessageEnabled` – invoice to customer and to WHATSAPP_NUM only when enabled.
+- **Templates:** `blackbird_invoice` (invoice), `blackbird_checkup_reminder` (reminder: {{1}} name, {{2}} days passed).
+- **Trigger invoice:** After booking creation (if settings.whatsappEnabled; self copy if settings.selfInvoiceMessageEnabled and WHATSAPP_NUM).
+- **Trigger reminder:** Cron every 12h; sends to customers whose booking is >= reminderTimeDays old and reminderSentAt is null.
+- **Utility:** `utils/whatsappTemplates.js` – `getBlackbirdInvoicePayload`, `getBlackbirdCheckupReminderPayload`.
 
 ---
 
@@ -241,7 +266,7 @@ Every API returns:
 - `PORT`, `NODE_ENV`
 - `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` – for seeding admin.
 - `JWT_SECRET`
-- WhatsApp: `WHATSAPP_ENABLED`, `WHATSAPP_TOKEN`, `TEST_NUM_ID`, etc.
+- WhatsApp: `WHATSAPP_TOKEN`, `TEST_NUM_ID`, `WHATSAPP_NUM` (self-invoice copy). Enable/disable via GET/PUT /api/settings.
 
 ---
 

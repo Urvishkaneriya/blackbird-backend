@@ -66,34 +66,38 @@ class BookingController {
 
   /**
    * Get bookings
-   * GET /api/bookings
-   * Admin sees all bookings, Employee sees their branch bookings
+   * GET /api/bookings?branchId=&startDate=&endDate=&page=&limit=
+   * Admin: all (optional branchId). Employee: their branch only.
    */
   async getBookings(req, res, next) {
     try {
-      let bookings;
+      const { branchId, startDate, endDate, page, limit } = req.query;
+      const filters = { startDate, endDate, page, limit };
 
-      // Check user role
       if (req.user.role === ROLES.ADMIN) {
-        // Admin sees all bookings
-        bookings = await bookingService.getAllBookings();
-      } else if (req.user.role === ROLES.EMPLOYEE) {
-        // Employee sees their branch bookings
-        const employee = await employeeService.findById(req.user.id);
-        
-        if (!employee) {
-          return notFoundResponse(res, 'Employee not found');
-        }
-
-        bookings = await bookingService.getBookingsByBranch(employee.branchId);
-      } else {
-        return badRequestResponse(res, 'Invalid user role');
+        if (branchId) filters.branchId = branchId;
+        const { bookings, total } = await bookingService.getAllBookings(filters);
+        return successResponse(res, MESSAGES.BOOKINGS_FETCHED, {
+          count: bookings.length,
+          total,
+          page: Math.max(1, parseInt(page, 10) || 1),
+          limit: Math.min(100, Math.max(1, parseInt(limit, 10) || 10)),
+          bookings,
+        });
       }
-
-      return successResponse(res, MESSAGES.BOOKINGS_FETCHED, {
-        count: bookings.length,
-        bookings,
-      });
+      if (req.user.role === ROLES.EMPLOYEE) {
+        const employee = await employeeService.findById(req.user.id);
+        if (!employee) return notFoundResponse(res, 'Employee not found');
+        const { bookings, total } = await bookingService.getBookingsByBranch(employee.branchId, filters);
+        return successResponse(res, MESSAGES.BOOKINGS_FETCHED, {
+          count: bookings.length,
+          total,
+          page: Math.max(1, parseInt(page, 10) || 1),
+          limit: Math.min(100, Math.max(1, parseInt(limit, 10) || 10)),
+          bookings,
+        });
+      }
+      return badRequestResponse(res, 'Invalid user role');
     } catch (error) {
       next(error);
     }

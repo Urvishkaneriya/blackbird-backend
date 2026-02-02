@@ -507,7 +507,10 @@
                   "    pm.expect(jsonData.data).to.have.property('employees');",
                   "    pm.expect(jsonData.data.employees).to.be.an('array');",
                   "    ",
-                  "    console.log('✅ Found', jsonData.data.count, 'employees');",
+                  "    pm.expect(jsonData.data).to.have.property('total');",
+                  "    pm.expect(jsonData.data).to.have.property('page');",
+                  "    pm.expect(jsonData.data).to.have.property('limit');",
+                  "    console.log('✅ Found', jsonData.data.count, 'of', jsonData.data.total, 'employees');",
                   "});"
                 ]
               }
@@ -517,11 +520,16 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/employees",
+              "raw": "{{baseUrl}}/api/employees?page=1&limit=10",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "employees"]
+              "path": ["api", "employees"],
+              "query": [
+                { "key": "branchId", "value": "", "disabled": true, "description": "Filter by branch ID (optional)" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
             },
-            "description": "Get all employees (Admin only)"
+            "description": "Get all employees (Admin only). Query: branchId (optional), page (default 1), limit (default 10, max 100). Response includes count, total, page, limit, employees."
           },
           "response": [
             {
@@ -530,7 +538,7 @@
               "code": 200,
               "_postman_previewlanguage": "json",
               "header": [{ "key": "Content-Type", "value": "application/json" }],
-              "body": "{\"message\": \"Employees fetched successfully\", \"data\": {\"count\": 1, \"employees\": [{\"_id\": \"678e001\", \"fullName\": \"John Doe\", \"email\": \"john.doe@example.com\", \"phoneNumber\": \"1234567890\", \"employeeNumber\": \"EMP0001\", \"branchId\": \"678b001\", \"role\": \"employee\"}]}}"
+              "body": "{\"message\": \"Employees fetched successfully\", \"data\": {\"count\": 1, \"total\": 1, \"page\": 1, \"limit\": 10, \"employees\": [{\"_id\": \"678e001\", \"fullName\": \"John Doe\", \"email\": \"john.doe@example.com\", \"phoneNumber\": \"1234567890\", \"employeeNumber\": \"EMP0001\", \"branchId\": \"678b001\", \"role\": \"employee\"}]}}"
             }
           ]
         },
@@ -798,12 +806,13 @@
                   "    pm.expect(jsonData.data).to.have.property('bookings');",
                   "    pm.expect(jsonData.data.bookings).to.be.an('array');",
                   "    ",
-                  "    // Each booking should have size if any exist",
                   "    if (jsonData.data.bookings.length > 0) {",
                   "        pm.expect(jsonData.data.bookings[0]).to.have.property('size');",
                   "    }",
-                  "    ",
-                  "    console.log('✅ Found', jsonData.data.count, 'bookings');",
+                  "    pm.expect(jsonData.data).to.have.property('total');",
+                  "    pm.expect(jsonData.data).to.have.property('page');",
+                  "    pm.expect(jsonData.data).to.have.property('limit');",
+                  "    console.log('✅ Found', jsonData.data.count, 'of', jsonData.data.total, 'bookings');",
                   "});"
                 ]
               }
@@ -813,11 +822,18 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/bookings",
+              "raw": "{{baseUrl}}/api/bookings?page=1&limit=10",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "bookings"]
+              "path": ["api", "bookings"],
+              "query": [
+                { "key": "branchId", "value": "", "disabled": true, "description": "Filter by branch (Admin only, optional)" },
+                { "key": "startDate", "value": "2026-01-01", "disabled": true, "description": "YYYY-MM-DD" },
+                { "key": "endDate", "value": "2026-01-31", "disabled": true, "description": "YYYY-MM-DD" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
             },
-            "description": "Get bookings. User id and role from token - Admin sees all, Employee sees their branch only. No body/query for user id."
+            "description": "Get bookings. Admin: all (optional branchId). Employee: their branch only. Query: branchId, startDate, endDate (YYYY-MM-DD), page, limit (default 10, max 100). Response: count, total, page, limit, bookings."
           },
           "response": [
             {
@@ -826,7 +842,7 @@
               "code": 200,
               "_postman_previewlanguage": "json",
               "header": [{ "key": "Content-Type", "value": "application/json" }],
-              "body": "{\"message\": \"Bookings fetched successfully\", \"data\": {\"count\": 1, \"bookings\": [{\"_id\": \"678bk001\", \"bookingNumber\": \"INV0001\", \"phone\": \"9876543210\", \"fullName\": \"Jane Customer\", \"amount\": 5000, \"size\": 5, \"artistName\": \"Mike Tattoo Artist\", \"paymentMethod\": \"CASH\", \"branchId\": {\"name\": \"Downtown Branch\", \"branchNumber\": \"BRANCH0001\"}, \"userId\": {\"fullName\": \"Jane Customer\", \"phone\": \"9876543210\", \"email\": \"customer@example.com\"}}]}}"
+              "body": "{\"message\": \"Bookings fetched successfully\", \"data\": {\"count\": 1, \"total\": 1, \"page\": 1, \"limit\": 10, \"bookings\": [{\"_id\": \"678bk001\", \"bookingNumber\": \"INV0001\", \"phone\": \"9876543210\", \"fullName\": \"Jane Customer\", \"amount\": 5000, \"size\": 5, \"artistName\": \"Mike Tattoo Artist\", \"paymentMethod\": \"CASH\", \"branchId\": {\"name\": \"Downtown Branch\", \"branchNumber\": \"BRANCH0001\"}, \"userId\": {\"fullName\": \"Jane Customer\", \"phone\": \"9876543210\", \"email\": \"customer@example.com\"}, \"date\": \"2026-01-19T10:00:00.000Z\", \"reminderSentAt\": null}]}}"
             }
           ]
         }
@@ -851,8 +867,10 @@
                   "    pm.expect(jsonData.data).to.have.property('count');",
                   "    pm.expect(jsonData.data).to.have.property('users');",
                   "    pm.expect(jsonData.data.users).to.be.an('array');",
-                  "    ",
-                  "    console.log('✅ Found', jsonData.data.count, 'customers');",
+                  "    pm.expect(jsonData.data).to.have.property('total');",
+                  "    pm.expect(jsonData.data).to.have.property('page');",
+                  "    pm.expect(jsonData.data).to.have.property('limit');",
+                  "    console.log('✅ Found', jsonData.data.count, 'of', jsonData.data.total, 'customers');",
                   "});"
                 ]
               }
@@ -862,11 +880,16 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/users",
+              "raw": "{{baseUrl}}/api/users?page=1&limit=10",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "users"]
+              "path": ["api", "users"],
+              "query": [
+                { "key": "branchId", "value": "", "disabled": true, "description": "Filter: users with booking at this branch (optional)" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
             },
-            "description": "Get all customers (Admin only)"
+            "description": "Get all customers (Admin only). Query: branchId (optional), page (default 1), limit (default 10, max 100). Response: count, total, page, limit, users."
           },
           "response": [
             {
@@ -875,7 +898,7 @@
               "code": 200,
               "_postman_previewlanguage": "json",
               "header": [{ "key": "Content-Type", "value": "application/json" }],
-              "body": "{\"message\": \"Users fetched successfully\", \"data\": {\"count\": 1, \"users\": [{\"_id\": \"678u001\", \"fullName\": \"Jane Customer\", \"phone\": \"9876543210\", \"email\": \"customer@example.com\", \"totalOrders\": 2, \"totalAmount\": 10000, \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T10:00:00.000Z\"}]}}"
+              "body": "{\"message\": \"Users fetched successfully\", \"data\": {\"count\": 1, \"total\": 1, \"page\": 1, \"limit\": 10, \"users\": [{\"_id\": \"678u001\", \"fullName\": \"Jane Customer\", \"phone\": \"9876543210\", \"email\": \"customer@example.com\", \"totalOrders\": 2, \"totalAmount\": 10000, \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T10:00:00.000Z\"}]}}"
             }
           ]
         }
@@ -938,6 +961,83 @@
               "_postman_previewlanguage": "json",
               "header": [{ "key": "Content-Type", "value": "application/json" }],
               "body": "{\"message\": \"Dashboard data fetched successfully\", \"data\": {\"dateRange\": {\"startDate\": \"2026-01-01\", \"endDate\": \"2026-01-31\"}, \"branchInfo\": {\"branchId\": \"678b001\", \"branchName\": \"Downtown Branch\", \"branchNumber\": \"BRANCH0001\", \"employeeCount\": 3}, \"summary\": {\"totalBookings\": 10, \"totalRevenue\": 50000, \"uniqueCustomersInRange\": 6, \"averageOrderValue\": 5000}, \"byPaymentMethod\": [{\"paymentMethod\": \"CASH\", \"count\": 6, \"totalAmount\": 30000}, {\"paymentMethod\": \"UPI\", \"count\": 4, \"totalAmount\": 20000}]}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "item": [
+        {
+          "name": "Get Settings",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Settings returned', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.eql('Settings fetched successfully');",
+                  "    pm.expect(jsonData.data).to.have.property('whatsappEnabled');",
+                  "    pm.expect(jsonData.data).to.have.property('reminderEnabled');",
+                  "    pm.expect(jsonData.data).to.have.property('reminderTimeDays');",
+                  "    pm.expect(jsonData.data).to.have.property('selfInvoiceMessageEnabled');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/settings", "host": ["{{baseUrl}}"], "path": ["api", "settings"] },
+            "description": "Get app settings (admin only). Returns whatsappEnabled, reminderEnabled, reminderTimeDays, selfInvoiceMessageEnabled."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Settings fetched successfully\", \"data\": {\"_id\": \"678s001\", \"whatsappEnabled\": true, \"reminderEnabled\": true, \"reminderTimeDays\": 60, \"selfInvoiceMessageEnabled\": true, \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T10:00:00.000Z\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Update Settings",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Settings updated', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.eql('Settings updated successfully');",
+                  "    pm.expect(jsonData.data).to.have.property('reminderTimeDays');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"whatsappEnabled\": true, \"reminderEnabled\": true, \"reminderTimeDays\": 60, \"selfInvoiceMessageEnabled\": true}" },
+            "url": { "raw": "{{baseUrl}}/api/settings", "host": ["{{baseUrl}}"], "path": ["api", "settings"] },
+            "description": "Update settings (admin only). Body: whatsappEnabled?, reminderEnabled?, reminderTimeDays? (min 1), selfInvoiceMessageEnabled?."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Settings updated successfully\", \"data\": {\"_id\": \"678s001\", \"whatsappEnabled\": true, \"reminderEnabled\": true, \"reminderTimeDays\": 60, \"selfInvoiceMessageEnabled\": true, \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T12:00:00.000Z\"}}"
             }
           ]
         }

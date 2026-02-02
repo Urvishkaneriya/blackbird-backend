@@ -4,7 +4,9 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const connectDB = require('./src/config/database');
 const seedAdmin = require('./src/scripts/seedAdmin');
+const settingsService = require('./src/services/settings.service');
 const { errorHandler, notFoundHandler } = require('./src/middlewares/error.middleware');
+const reminderCron = require('./src/jobs/reminderCron');
 
 // Routes
 const authRoutes = require('./src/routes/auth.routes');
@@ -13,6 +15,7 @@ const branchRoutes = require('./src/routes/branch.routes');
 const bookingRoutes = require('./src/routes/booking.routes');
 const userRoutes = require('./src/routes/user.routes');
 const dashboardRoutes = require('./src/routes/dashboard.routes');
+const settingsRoutes = require('./src/routes/settings.routes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -87,6 +90,7 @@ app.get('/', (req, res) => {
         bookings: '/api/bookings',
         users: '/api/users',
         dashboard: '/api/dashboard',
+        settings: '/api/settings',
       }
     }
   });
@@ -99,6 +103,7 @@ app.use('/api/branches', branchRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // 404 handler - must be after all routes
 app.use(notFoundHandler);
@@ -106,7 +111,7 @@ app.use(notFoundHandler);
 // Error handler - must be last
 app.use(errorHandler);
 
-// Connect to MongoDB, seed admin, and start server
+// Connect to MongoDB, seed admin/settings, start cron, and start server
 const startServer = async () => {
   try {
     // Connect to database
@@ -114,6 +119,11 @@ const startServer = async () => {
     
     // Seed admin user from .env
     await seedAdmin();
+    // Seed default settings if none exist
+    await settingsService.seedSettings();
+
+    // Start reminder cron (every 12 hours)
+    reminderCron.start();
     
     // Start server
     app.listen(PORT, () => {

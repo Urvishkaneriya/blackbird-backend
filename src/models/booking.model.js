@@ -66,6 +66,10 @@ const bookingSchema = new mongoose.Schema(
       ref: 'User',
       required: [true, 'User is required'],
     },
+    reminderSentAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

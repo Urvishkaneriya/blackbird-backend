@@ -80,7 +80,25 @@ class EmployeeService {
   }
 
   /**
-   * Get all employees
+   * Get all employees with optional branchId filter and pagination
+   * @param {Object} filters - { branchId?, page?, limit? }
+   * @returns {Promise<{ employees: Array, total: Number }>}
+   */
+  async getEmployees(filters = {}) {
+    const { branchId, page = 1, limit = 10 } = filters;
+    const safeLimit = Math.min(Math.max(Number(limit) || 10, 1), 100);
+    const skip = (Math.max(Number(page) || 1, 1) - 1) * safeLimit;
+    const query = {};
+    if (branchId) query.branchId = branchId;
+    const [employees, total] = await Promise.all([
+      Employee.find(query).select('-password').sort({ createdAt: -1 }).skip(skip).limit(safeLimit).lean(),
+      Employee.countDocuments(query),
+    ]);
+    return { employees, total };
+  }
+
+  /**
+   * Get all employees (no pagination) - backward compat
    * @param {Object} filters - Optional filters
    * @returns {Promise<Array>} Array of employee documents
    */
