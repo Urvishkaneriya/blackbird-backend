@@ -4,15 +4,14 @@ const settingsService = require('../services/settings.service');
 const whatsappService = require('../services/whatsapp.service');
 
 /**
- * Run reminder job: find bookings that are >= reminderTimeDays old and haven't had reminder sent,
- * send WhatsApp reminder, then set reminderSentAt.
+ * Run reminder job: find bookings that are >= reminderTimeDays old and reminderSentAt is null,
+ * send WhatsApp reminder, then set reminderSentAt so we never send again for that booking.
  */
 async function runReminderJob() {
+  console.log('⏰ Reminder cron: running');
   try {
     const settings = await settingsService.getSettings();
-    if (!settings.whatsappEnabled) {
-      return;
-    }
+    if (!settings.whatsappEnabled) return;
     if (!settings.reminderEnabled) {
       console.log('⏰ Reminder cron: reminders disabled in settings');
       return;
@@ -54,7 +53,7 @@ async function runReminderJob() {
 }
 
 function start() {
-  // Every 12 hours: at 00:00 and 12:00
+  // Every 12 hours: at 00:00 and 12:00 (5-field: minute hour day month weekday)
   cron.schedule('0 */12 * * *', runReminderJob, { timezone: 'Asia/Kolkata' });
   console.log('⏰ Reminder cron scheduled (every 12 hours)');
 }

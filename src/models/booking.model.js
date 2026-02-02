@@ -95,10 +95,11 @@ bookingSchema.index({ employeeId: 1 });
 bookingSchema.index({ userId: 1 });
 bookingSchema.index({ date: -1 });
 
-// Remove __v from JSON responses
+// Remove __v from JSON; add reminderSent boolean so API and cron never send twice
 bookingSchema.methods.toJSON = function () {
   const booking = this.toObject();
   delete booking.__v;
+  booking.reminderSent = !!booking.reminderSentAt;
   return booking;
 };
 
