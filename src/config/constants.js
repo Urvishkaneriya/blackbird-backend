@@ -28,6 +28,24 @@ const PAYMENT_METHODS = {
   UPI: 'UPI',
 };
 
+// Marketing Template Dynamic Fields (enum for frontend dropdown)
+const MARKETING_DYNAMIC_FIELDS = {
+  USER_FULLNAME: 'user_fullName',
+  USER_PHONE: 'user_phone',
+  USER_EMAIL: 'user_email',
+  BRANCH_NAME: 'branch_name',
+  BRANCH_NUMBER: 'branch_number',
+};
+
+// Mapping dynamic field enum to actual database field paths
+const MARKETING_FIELD_MAPPING = {
+  'user_fullName': { type: 'user', field: 'fullName' },
+  'user_phone': { type: 'user', field: 'phone' },
+  'user_email': { type: 'user', field: 'email' },
+  'branch_name': { type: 'branch', field: 'name' },
+  'branch_number': { type: 'branch', field: 'branchNumber' },
+};
+
 // Response Messages
 const MESSAGES = {
   // Auth Messages
@@ -106,6 +124,8 @@ module.exports = {
   BRANCH_NUMBER_PREFIX,
   BOOKING_NUMBER_PREFIX,
   PAYMENT_METHODS,
+  MARKETING_DYNAMIC_FIELDS,
+  MARKETING_FIELD_MAPPING,
   MESSAGES,
   STATUS_CODES,
   VALIDATION,

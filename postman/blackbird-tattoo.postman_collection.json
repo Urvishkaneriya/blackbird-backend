@@ -1042,6 +1042,296 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Marketing Templates",
+      "item": [
+        {
+          "name": "Create Marketing Template",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('Template created', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.eql('Marketing template created successfully');",
+                  "    pm.expect(jsonData.data).to.have.property('_id');",
+                  "    pm.expect(jsonData.data).to.have.property('name');",
+                  "    pm.expect(jsonData.data).to.have.property('parameters');",
+                  "    pm.environment.set('lastCreatedTemplateId', jsonData.data._id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"WELCOME_DISCOUNT\",\n  \"displayName\": \"Welcome Discount Offer\",\n  \"channel\": \"whatsapp\",\n  \"whatsappTemplateName\": \"blackbird_welcome_discount\",\n  \"languageCode\": \"en\",\n  \"bodyExample\": \"Hello {{1}}, enjoy {{2}}% discount until {{3}}!\",\n  \"parameters\": [\n    {\n      \"key\": \"name\",\n      \"position\": 1,\n      \"type\": \"string\",\n      \"required\": true,\n      \"description\": \"Customer name\"\n    },\n    {\n      \"key\": \"percent\",\n      \"position\": 2,\n      \"type\": \"number\",\n      \"required\": true,\n      \"description\": \"Discount percentage\"\n    },\n    {\n      \"key\": \"days\",\n      \"position\": 3,\n      \"type\": \"number\",\n      \"required\": true,\n      \"description\": \"Days\"\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/marketing/templates", "host": ["{{baseUrl}}"], "path": ["api", "marketing", "templates"] },
+            "description": "Create a new marketing template (admin only). Required: name, displayName, whatsappTemplateName. Parameters: just define key, position, type, required, description. No need to mark static/user - that's decided when sending (admin can type value OR select enum from dropdown)."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Marketing template created successfully\", \"data\": {\"_id\": \"tpl_abc123\", \"name\": \"WELCOME_DISCOUNT\", \"displayName\": \"Welcome Discount Offer\", \"channel\": \"whatsapp\", \"whatsappTemplateName\": \"blackbird_welcome_discount\", \"languageCode\": \"en\", \"bodyExample\": \"Hello {{1}}, enjoy {{2}}% discount until {{3}}!\", \"parameters\": [{\"key\": \"name\", \"position\": 1, \"type\": \"string\", \"required\": true, \"description\": \"Customer name\"}, {\"key\": \"percent\", \"position\": 2, \"type\": \"number\", \"required\": true, \"description\": \"Discount percentage\"}, {\"key\": \"days\", \"position\": 3, \"type\": \"number\", \"required\": true, \"description\": \"Days\"}], \"isActive\": true, \"createdBy\": {\"_id\": \"678a123\", \"name\": \"Admin\", \"email\": \"admin@example.com\"}, \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T10:00:00.000Z\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Get Dynamic Fields",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/marketing/dynamic-fields", "host": ["{{baseUrl}}"], "path": ["api", "marketing", "dynamic-fields"] },
+            "description": "Get available dynamic field enum options for frontend dropdown (admin only). Returns list like user_fullName, user_phone, branch_name, etc."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Dynamic fields fetched successfully\", \"data\": {\"fields\": [{\"value\": \"user_fullName\", \"label\": \"user fullName\"}, {\"value\": \"user_phone\", \"label\": \"user phone\"}, {\"value\": \"user_email\", \"label\": \"user email\"}, {\"value\": \"branch_name\", \"label\": \"branch name\"}, {\"value\": \"branch_number\", \"label\": \"branch number\"}]}}"
+            }
+          ]
+        },
+        {
+          "name": "Get All Templates",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Templates list returned', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('templates');",
+                  "    pm.expect(jsonData.data).to.have.property('total');",
+                  "    pm.expect(jsonData.data).to.have.property('page');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/marketing/templates?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "marketing", "templates"],
+              "query": [
+                { "key": "channel", "value": "whatsapp", "disabled": true },
+                { "key": "isActive", "value": "true", "disabled": true },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            },
+            "description": "Get all marketing templates (admin only). Query: channel, isActive, page, limit."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Templates fetched successfully\", \"data\": {\"count\": 1, \"total\": 1, \"page\": 1, \"limit\": 10, \"templates\": [{\"_id\": \"tpl_abc123\", \"name\": \"WELCOME_DISCOUNT\", \"displayName\": \"Welcome Discount Offer\", \"channel\": \"whatsapp\", \"whatsappTemplateName\": \"blackbird_welcome_discount\", \"isActive\": true, \"createdBy\": {\"name\": \"Admin\", \"email\": \"admin@example.com\"}, \"createdAt\": \"2026-01-19T10:00:00.000Z\"}]}}"
+            }
+          ]
+        },
+        {
+          "name": "Get Template by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/marketing/templates/{{lastCreatedTemplateId}}", "host": ["{{baseUrl}}"], "path": ["api", "marketing", "templates", "{{lastCreatedTemplateId}}"] },
+            "description": "Get single marketing template by ID (admin only)."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Template fetched successfully\", \"data\": {\"_id\": \"tpl_abc123\", \"name\": \"WELCOME_DISCOUNT\", \"displayName\": \"Welcome Discount Offer\", \"channel\": \"whatsapp\", \"whatsappTemplateName\": \"blackbird_welcome_discount\", \"languageCode\": \"en\", \"bodyExample\": \"Hello {{1}}, enjoy {{2}}% discount until {{3}}!\", \"parameters\": [{\"key\": \"name\", \"position\": 1, \"type\": \"string\", \"required\": true, \"description\": \"Customer name\"}, {\"key\": \"percent\", \"position\": 2, \"type\": \"number\", \"required\": true, \"description\": \"Discount percentage\"}, {\"key\": \"days\", \"position\": 3, \"type\": \"number\", \"required\": true, \"description\": \"Days\"}], \"isActive\": true, \"createdBy\": {\"name\": \"Admin\", \"email\": \"admin@example.com\"}, \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T10:00:00.000Z\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Preview Template",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"parameters\": {\n    \"name\": \"user_fullName\",\n    \"percent\": 20,\n    \"days\": 30\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/marketing/templates/{{lastCreatedTemplateId}}/preview", "host": ["{{baseUrl}}"], "path": ["api", "marketing", "templates", "{{lastCreatedTemplateId}}", "preview"] },
+            "description": "Preview template with parameters (admin only). Body: parameters object. Can use typed values OR enum values (like 'user_fullName') - enum values show as empty in preview since no user data available."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Preview generated successfully\", \"data\": {\"renderedText\": \"Hello , enjoy 20% discount until 30!\", \"whatsappTemplateName\": \"blackbird_welcome_discount\", \"languageCode\": \"en\", \"mappedParameters\": [\"\", \"20\", \"30\"]}}"
+            }
+          ]
+        },
+        {
+          "name": "Send - Single Phone",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"audience\": {\n    \"type\": \"single\",\n    \"phone\": \"9876543210\"\n  },\n  \"parameters\": {\n    \"name\": \"John\",\n    \"percent\": 20,\n    \"days\": 30\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/marketing/templates/{{lastCreatedTemplateId}}/send", "host": ["{{baseUrl}}"], "path": ["api", "marketing", "templates", "{{lastCreatedTemplateId}}", "send"] },
+            "description": "Send marketing message to single phone (admin only). Audience: { type: 'single', phone: '...' }. Parameters: type values OR use enum (like 'user_fullName') - enum values resolved from database if user exists."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Marketing send started\", \"data\": {\"_id\": \"ms_123\", \"templateId\": \"tpl_abc123\", \"triggeredBy\": \"678a123\", \"audienceType\": \"single\", \"audienceFilter\": {\"type\": \"single\", \"phone\": \"9876543210\"}, \"parameters\": {\"name\": \"John\", \"percent\": 20, \"days\": 30}, \"perUserParameters\": {}, \"status\": \"completed\", \"stats\": {\"total\": 1, \"success\": 1, \"failed\": 0}, \"completedAt\": \"2026-01-19T10:05:00.000Z\", \"createdAt\": \"2026-01-19T10:00:00.000Z\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Send - List of Phones",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"audience\": {\n    \"type\": \"list\",\n    \"phones\": [\"9876543210\", \"9123456789\"]\n  },\n  \"parameters\": {\n    \"name\": \"Friend\",\n    \"percent\": 15,\n    \"days\": 30\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/marketing/templates/{{lastCreatedTemplateId}}/send", "host": ["{{baseUrl}}"], "path": ["api", "marketing", "templates", "{{lastCreatedTemplateId}}", "send"] },
+            "description": "Send to list of phones (admin only). Audience: { type: 'list', phones: ['...', '...'] }."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Marketing send started\", \"data\": {\"_id\": \"ms_124\", \"templateId\": \"tpl_abc123\", \"audienceType\": \"list\", \"audienceFilter\": {\"type\": \"list\", \"phones\": [\"9876543210\", \"9123456789\"]}, \"parameters\": {\"name\": \"Friend\", \"percent\": 15, \"days\": 30}, \"status\": \"completed\", \"stats\": {\"total\": 2, \"success\": 2, \"failed\": 0}, \"completedAt\": \"2026-01-19T10:05:00.000Z\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Send - Branch Customers",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"audience\": {\n    \"type\": \"branch_customers\",\n    \"branchId\": \"{{lastCreatedBranchId}}\",\n    \"dateFilter\": {\n      \"startDate\": \"2026-01-01\",\n      \"endDate\": \"2026-01-31\"\n    }\n  },\n  \"parameters\": {\n    \"name\": \"user_fullName\",\n    \"percent\": 15,\n    \"days\": 30\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/marketing/templates/{{lastCreatedTemplateId}}/send", "host": ["{{baseUrl}}"], "path": ["api", "marketing", "templates", "{{lastCreatedTemplateId}}", "send"] },
+            "description": "Send to branch customers with date filter (admin only). Audience: { type: 'branch_customers', branchId: '...', dateFilter?: { startDate, endDate } }. Parameters: type values OR use enum (like 'user_fullName') - enum values auto-resolved from each customer's data."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Marketing send started\", \"data\": {\"_id\": \"ms_125\", \"templateId\": \"tpl_abc123\", \"audienceType\": \"branch_customers\", \"audienceFilter\": {\"type\": \"branch_customers\", \"branchId\": \"678b001\", \"dateFilter\": {\"startDate\": \"2026-01-01\", \"endDate\": \"2026-01-31\"}}, \"parameters\": {\"name\": \"user_fullName\", \"percent\": 15, \"days\": 30}, \"perUserParameters\": {}, \"status\": \"completed\", \"stats\": {\"total\": 25, \"success\": 23, \"failed\": 2}, \"completedAt\": \"2026-01-19T10:05:00.000Z\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Send - All Customers",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"audience\": {\n    \"type\": \"all_customers\",\n    \"dateFilter\": {\n      \"startDate\": \"2026-01-01\",\n      \"endDate\": \"2026-01-31\"\n    }\n  },\n  \"parameters\": {\n    \"name\": \"user_fullName\",\n    \"percent\": 10,\n    \"days\": 30\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/marketing/templates/{{lastCreatedTemplateId}}/send", "host": ["{{baseUrl}}"], "path": ["api", "marketing", "templates", "{{lastCreatedTemplateId}}", "send"] },
+            "description": "Send to all customers with date filter (admin only). Audience: { type: 'all_customers', dateFilter?: { startDate, endDate } }. Parameters: type values OR use enum (like 'user_fullName') - enum values auto-resolved from each customer's data."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Marketing send started\", \"data\": {\"_id\": \"ms_126\", \"templateId\": \"tpl_abc123\", \"audienceType\": \"all_customers\", \"audienceFilter\": {\"type\": \"all_customers\", \"dateFilter\": {\"startDate\": \"2026-01-01\", \"endDate\": \"2026-01-31\"}}, \"parameters\": {\"name\": \"user_fullName\", \"percent\": 10, \"days\": 30}, \"perUserParameters\": {}, \"status\": \"completed\", \"stats\": {\"total\": 120, \"success\": 115, \"failed\": 5}, \"completedAt\": \"2026-01-19T10:05:00.000Z\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Get Send Job by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/marketing/sends/ms_123", "host": ["{{baseUrl}}"], "path": ["api", "marketing", "sends", "ms_123"] },
+            "description": "Get send job details by ID (admin only)."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Send job fetched successfully\", \"data\": {\"_id\": \"ms_123\", \"templateId\": {\"_id\": \"tpl_abc123\", \"name\": \"WELCOME_DISCOUNT\", \"displayName\": \"Welcome Discount Offer\", \"whatsappTemplateName\": \"blackbird_welcome_discount\"}, \"triggeredBy\": {\"_id\": \"678a123\", \"name\": \"Admin\", \"email\": \"admin@example.com\"}, \"audienceType\": \"branch_customers\", \"audienceFilter\": {\"type\": \"branch_customers\", \"branchId\": \"678b001\", \"dateFilter\": {\"startDate\": \"2026-01-01\", \"endDate\": \"2026-01-31\"}}, \"parameters\": {\"name\": \"user_fullName\", \"percent\": 15, \"days\": 30}, \"perUserParameters\": {}, \"status\": \"completed\", \"stats\": {\"total\": 25, \"success\": 23, \"failed\": 2}, \"completedAt\": \"2026-01-19T10:05:00.000Z\", \"createdAt\": \"2026-01-19T10:00:00.000Z\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Get All Send Jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/marketing/sends?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "marketing", "sends"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            },
+            "description": "Get all send jobs with pagination (admin only). Query: page, limit."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\"message\": \"Send jobs fetched successfully\", \"data\": {\"count\": 2, \"total\": 2, \"page\": 1, \"limit\": 10, \"sends\": [{\"_id\": \"ms_123\", \"templateId\": {\"name\": \"WELCOME_DISCOUNT\", \"displayName\": \"Welcome Discount Offer\"}, \"triggeredBy\": {\"name\": \"Admin\", \"email\": \"admin@example.com\"}, \"audienceType\": \"branch_customers\", \"status\": \"completed\", \"stats\": {\"total\": 25, \"success\": 23, \"failed\": 2}, \"createdAt\": \"2026-01-19T10:00:00.000Z\"}]}}"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

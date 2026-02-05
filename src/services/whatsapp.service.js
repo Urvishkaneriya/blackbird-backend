@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { getBlackbirdInvoicePayload, getBlackbirdCheckupReminderPayload } = require('../utils/whatsappTemplates');
+const { getBlackbirdInvoicePayload, getBlackbirdCheckupReminderPayload, buildTemplatePayload } = require('../utils/whatsappTemplates');
 
 class WhatsAppService {
   /**
@@ -92,6 +92,55 @@ class WhatsAppService {
     } catch (error) {
       console.error('❌ WhatsApp reminder failed:', { message: error.message, phone });
       return { success: false, message: error.message };
+    }
+  }
+
+  /**
+   * Send marketing message via WhatsApp using dynamic template
+   * @param {String} phone - Customer phone number
+   * @param {String} templateName - WhatsApp template name (from Meta)
+   * @param {String} languageCode - Language code (default: 'en')
+   * @param {Array<String>} orderedParameters - Ordered array of parameter values for {{1}}, {{2}}, etc.
+   * @returns {Promise<Object>} API response
+   */
+  async sendMarketingMessage(phone, templateName, languageCode, orderedParameters) {
+    try {
+      if (!process.env.WHATSAPP_TOKEN || !process.env.TEST_NUM_ID) {
+        return { success: false, message: 'WhatsApp configuration missing' };
+      }
+
+      const formattedPhone = phone.replace(/\D/g, '');
+      const template = buildTemplatePayload(templateName, orderedParameters, languageCode);
+      const apiUrl = `https://graph.facebook.com/v18.0/${process.env.TEST_NUM_ID}/messages`;
+
+      const payload = {
+        messaging_product: 'whatsapp',
+        to: formattedPhone,
+        type: 'template',
+        template,
+      };
+
+      const response = await axios.post(apiUrl, payload, {
+        headers: {
+          Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        timeout: 10000,
+      });
+
+      console.log('✅ WhatsApp marketing message sent:', response.data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error('❌ WhatsApp marketing message failed:', {
+        message: error.message,
+        response: error.response?.data,
+        phone: phone,
+      });
+      return {
+        success: false,
+        message: error.message,
+        error: error.response?.data || error.message,
+      };
     }
   }
 

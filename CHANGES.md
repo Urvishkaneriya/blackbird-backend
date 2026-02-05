@@ -1,253 +1,708 @@
-# Blackbird Tattoo Backend – Recent Changes
+# Blackbird Tattoo Backend – Marketing Templates Feature
 
-This document explains the changes added: **Settings API**, **self-invoice to your number**, **reminder cron**, **branch filter**, **pagination**, and **date filter** on list APIs.
+This document explains the **Dynamic Marketing Templates** feature that allows admins to create, manage, and send WhatsApp marketing messages with dynamic parameters.
 
 ---
 
-## 1. Settings API (Admin Only)
+## Overview
 
-Settings are stored in the database (single document) and control WhatsApp and reminder behaviour.
+The Marketing Templates feature enables you to:
+- **Create reusable WhatsApp templates** stored in the database
+- **Define dynamic parameters** (e.g., customer name, discount, expiry date)
+- **Send marketing messages** to different audiences (single phone, list, branch customers, all customers)
+- **Filter audiences by date** (e.g., customers with bookings in a date range)
+- **Use per-user parameters** (e.g., automatically use each customer's name)
+- **Track send jobs** with success/failure statistics
 
-### Endpoints
+---
 
-| Method | Endpoint        | Description                | Access   |
-|--------|-----------------|----------------------------|----------|
-| GET    | `/api/settings` | Get current settings       | Admin    |
-| PUT    | `/api/settings` | Update settings            | Admin    |
+## 1. Marketing Template Model
 
-### Settings Fields
+Templates are stored in the `marketing_templates` collection with the following structure:
 
-| Field                     | Type    | Default | Description |
-|---------------------------|---------|---------|-------------|
-| `whatsappEnabled`         | boolean | `true`  | Send invoice/reminder via WhatsApp when enabled. |
-| `reminderEnabled`        | boolean | `true`  | Allow reminder cron to send checkup reminders. |
-| `reminderTimeDays`       | number  | `60`    | Send reminder this many days after tattoo session (min: 1). |
-| `selfInvoiceMessageEnabled` | boolean | `true` | Send a copy of the invoice to `WHATSAPP_NUM` when a booking is created. |
+### Fields
 
-### Example Responses
+| Field                 | Type     | Required | Description |
+|-----------------------|----------|----------|-------------|
+| `name`                | String   | Yes      | Internal unique key (uppercase, e.g., `WELCOME_DISCOUNT`) |
+| `displayName`         | String   | Yes      | Human-friendly name (e.g., `Welcome Discount Offer`) |
+| `channel`             | String   | Yes      | Currently only `"whatsapp"` |
+| `whatsappTemplateName`| String   | Yes      | Exact name from Meta WhatsApp Business (e.g., `blackbird_welcome_discount`) |
+| `languageCode`        | String   | No       | Language code (default: `"en"`) |
+| `bodyExample`         | String   | No       | Example text showing how template looks (e.g., `Hello {{1}}, enjoy {{2}}% discount until {{3}}!`) |
+| `parameters`          | Array    | No       | Array of parameter definitions (see below) |
+| `isActive`            | Boolean  | No       | Whether template can be used (default: `true`) |
+| `createdBy`           | ObjectId | Yes      | Admin ID who created it |
 
-**GET /api/settings** (200)
+### Parameter Definition
+
+Each parameter in the `parameters` array has:
+
+| Field         | Type    | Required | Description |
+|---------------|---------|----------|-------------|
+| `key`         | String  | Yes      | Parameter key (e.g., `"customer_name"`, `"discount_percent"`) |
+| `position`    | Number  | Yes      | Position in template (1 = {{1}}, 2 = {{2}}, etc.) |
+| `type`        | String  | No       | `"string"`, `"number"`, or `"date"` (default: `"string"`) |
+| `required`    | Boolean | No       | Whether parameter is required (default: `false`) |
+| `description` | String  | No       | Description for UI/documentation |
+
+**Note:** Template creation is simple - just define parameters. When **sending**, admin can either **type a value** OR **select from enum dropdown** (like `user_fullName`, `branch_name`) to get values from database automatically.
+
+**Important:** Parameter positions must be **contiguous starting from 1** (1, 2, 3... not 1, 3, 5).
+
+### Example Template Document
 
 ```json
 {
-  "message": "Settings fetched successfully",
+  "_id": "tpl_abc123",
+  "name": "WELCOME_DISCOUNT",
+  "displayName": "Welcome Discount Offer",
+  "channel": "whatsapp",
+  "whatsappTemplateName": "blackbird_welcome_discount",
+  "languageCode": "en",
+  "bodyExample": "Hello {{1}}, enjoy a {{2}}% discount until {{3}}!",
+  "parameters": [
+    {
+      "key": "name",
+      "position": 1,
+      "type": "string",
+      "required": true,
+      "description": "Customer name"
+    },
+    {
+      "key": "percent",
+      "position": 2,
+      "type": "number",
+      "required": true,
+      "description": "Discount percentage"
+    },
+    {
+      "key": "days",
+      "position": 3,
+      "type": "number",
+      "required": true,
+      "description": "Days"
+    }
+  ],
+  "isActive": true,
+  "createdBy": "678a123",
+  "createdAt": "2026-01-19T10:00:00.000Z",
+  "updatedAt": "2026-01-19T10:00:00.000Z"
+}
+```
+
+---
+
+## 2. Template Management APIs
+
+All template APIs are **admin-only** (require authentication + admin role).
+
+### 2.1 Create Template
+
+**POST** `/api/marketing/templates`
+
+**Request Body:**
+```json
+{
+  "name": "WELCOME_DISCOUNT",
+  "displayName": "Welcome Discount Offer",
+  "channel": "whatsapp",
+  "whatsappTemplateName": "blackbird_welcome_discount",
+  "languageCode": "en",
+  "bodyExample": "Hello {{1}}, enjoy a {{2}}% discount until {{3}}!",
+  "parameters": [
+    {
+      "key": "customer_name",
+      "position": 1,
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "discount_percent",
+      "position": 2,
+      "type": "number",
+      "required": true
+    },
+    {
+      "key": "expiry_date",
+      "position": 3,
+      "type": "string",
+      "required": true
+    }
+  ]
+}
+```
+
+**Response (201):**
+```json
+{
+  "message": "Marketing template created successfully",
   "data": {
-    "_id": "678s001",
-    "whatsappEnabled": true,
-    "reminderEnabled": true,
-    "reminderTimeDays": 60,
-    "selfInvoiceMessageEnabled": true,
+    "_id": "tpl_abc123",
+    "name": "WELCOME_DISCOUNT",
+    "displayName": "Welcome Discount Offer",
+    "channel": "whatsapp",
+    "whatsappTemplateName": "blackbird_welcome_discount",
+    "languageCode": "en",
+    "bodyExample": "Hello {{1}}, enjoy a {{2}}% discount until {{3}}!",
+    "parameters": [...],
+    "isActive": true,
+    "createdBy": { "name": "Admin", "email": "admin@example.com" },
     "createdAt": "2026-01-19T10:00:00.000Z",
     "updatedAt": "2026-01-19T10:00:00.000Z"
   }
 }
 ```
 
-**PUT /api/settings** (200)  
-Body: `{ "reminderTimeDays": 45, "selfInvoiceMessageEnabled": false }`
+**Validation:**
+- `name`, `displayName`, `whatsappTemplateName` are required
+- `name` must be unique (stored uppercase)
+- Parameter positions must be contiguous (1, 2, 3...)
 
+---
+
+### 2.2 List Templates
+
+**GET** `/api/marketing/templates?channel=whatsapp&isActive=true&page=1&limit=10`
+
+**Query Parameters:**
+- `channel` (optional): Filter by channel (e.g., `whatsapp`)
+- `isActive` (optional): Filter by active status (`true`/`false`)
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Items per page (default: 10, max: 100)
+
+**Response (200):**
 ```json
 {
-  "message": "Settings updated successfully",
+  "message": "Templates fetched successfully",
   "data": {
-    "_id": "678s001",
-    "whatsappEnabled": true,
-    "reminderEnabled": true,
-    "reminderTimeDays": 45,
-    "selfInvoiceMessageEnabled": false,
-    "createdAt": "2026-01-19T10:00:00.000Z",
-    "updatedAt": "2026-01-19T12:00:00.000Z"
-  }
-}
-```
-
-- Default settings are created on server startup if no document exists.
-- Only admins can call GET/PUT settings.
-
----
-
-## 2. Self-Invoice to Your Number
-
-When a booking is created:
-
-1. If **settings.whatsappEnabled** is true, the invoice is sent to the **customer** phone via WhatsApp (`blackbird_invoice` template).
-2. If **settings.selfInvoiceMessageEnabled** is true and **env `WHATSAPP_NUM`** is set, the **same invoice** is sent to that number (your number).
-
-### Configuration
-
-- Add to `.env`:
-  - `WHATSAPP_NUM=9876543210` (your 10-digit number; no +91 needed in env).
-
-### Behaviour
-
-- Self-invoice is sent only when both:
-  - `selfInvoiceMessageEnabled` is true (from GET/PUT settings), and  
-  - `WHATSAPP_NUM` is present in `.env`.
-- If WhatsApp send fails, the booking is still created; errors are logged.
-
----
-
-## 3. Reminder Cron (Checkup Reminder)
-
-A cron job runs **every 12 hours** and sends a post-service checkup reminder via WhatsApp to customers whose tattoo session is old enough and who haven’t received a reminder yet.
-
-### Logic
-
-1. Read settings: if `reminderEnabled` is false, do nothing.
-2. Find bookings where:
-   - `date` is at least **`reminderTimeDays`** days ago, and  
-   - `reminderSentAt` is null.
-3. For each such booking, send WhatsApp template **`blackbird_checkup_reminder`** to the customer phone with:
-   - **{{1}}** = customer name  
-   - **{{2}}** = days since session  
-4. On successful send, set **`reminderSentAt`** to current time so we don’t send again.
-
-### Template (Meta WhatsApp)
-
-- **Name:** `blackbird_checkup_reminder`
-- **Body (example):**  
-  `Hello {{1}}, Post-service care update. {{2}} days have passed since the tattoo session. Follow-up checkup status: pending. Thank you.`
-
-### Booking Model Change
-
-- **`reminderSentAt`** (Date, optional): set when reminder is sent; `null` until then.
-
-### Cron Schedule
-
-- Runs at **0:00 and 12:00** (every 12 hours), timezone `Asia/Kolkata`.
-- Implemented in `src/jobs/reminderCron.js` and started from `server.js` after DB connect.
-
----
-
-## 4. Branch Filter on List APIs
-
-List APIs support an optional **`branchId`** query parameter to restrict results to one branch.
-
-### Employees
-
-- **GET /api/employees?branchId=**`<branchId>`
-- Returns only employees assigned to that branch.
-- Admin only.
-
-### Users (Customers)
-
-- **GET /api/users?branchId=**`<branchId>`
-- Returns only **users (customers) who have at least one booking** at that branch.
-- Admin only.
-
-### Bookings
-
-- **GET /api/bookings?branchId=**`<branchId>`
-- **Admin:** optional; when provided, returns only bookings for that branch.
-- **Employee:** always scoped to their branch; `branchId` is ignored (they only see their branch).
-
----
-
-## 5. Pagination on List APIs
-
-All list APIs now support **`page`** and **`limit`** and return **`total`**, **`page`**, and **`limit`** in the response.
-
-### Query Parameters
-
-| Param  | Type   | Default | Max   | Description        |
-|--------|--------|--------|------|--------------------|
-| `page` | number | 1      | -    | Page number (1-based). |
-| `limit`| number | 10     | 100  | Items per page.     |
-
-### Response Shape
-
-List responses now include:
-
-- **`count`** – number of items in the current page.
-- **`total`** – total number of items matching the query.
-- **`page`** – current page.
-- **`limit`** – limit used.
-
-### Affected Endpoints
-
-| Endpoint              | Pagination      | Example query                    |
-|-----------------------|-----------------|----------------------------------|
-| GET /api/bookings     | page, limit     | `?page=1&limit=20`               |
-| GET /api/users        | page, limit     | `?page=1&limit=10`               |
-| GET /api/employees    | page, limit     | `?page=1&limit=10`               |
-
-### Example Response (Bookings)
-
-**GET /api/bookings?page=1&limit=10** (200)
-
-```json
-{
-  "message": "Bookings fetched successfully",
-  "data": {
-    "count": 10,
-    "total": 45,
+    "count": 2,
+    "total": 2,
     "page": 1,
     "limit": 10,
-    "bookings": [
+    "templates": [
       {
-        "_id": "678bk001",
-        "bookingNumber": "INV0001",
-        "phone": "9876543210",
-        "fullName": "Jane Customer",
-        "amount": 5000,
-        "size": 5,
-        "artistName": "Mike Tattoo Artist",
-        "paymentMethod": "CASH",
-        "branchId": { "name": "Downtown Branch", "branchNumber": "BRANCH0001" },
-        "userId": { "fullName": "Jane Customer", "phone": "9876543210", "email": "customer@example.com" },
-        "date": "2026-01-19T10:00:00.000Z",
-        "reminderSentAt": null
+        "_id": "tpl_abc123",
+        "name": "WELCOME_DISCOUNT",
+        "displayName": "Welcome Discount Offer",
+        "channel": "whatsapp",
+        "whatsappTemplateName": "blackbird_welcome_discount",
+        "isActive": true,
+        "createdBy": { "name": "Admin", "email": "admin@example.com" },
+        "createdAt": "2026-01-19T10:00:00.000Z"
       }
     ]
   }
 }
 ```
 
-Similar structure applies to **GET /api/users** and **GET /api/employees** (`users` / `employees` array plus `count`, `total`, `page`, `limit`).
+---
+
+### 2.3 Get Template by ID
+
+**GET** `/api/marketing/templates/:id`
+
+**Response (200):**
+```json
+{
+  "message": "Template fetched successfully",
+  "data": {
+    "_id": "tpl_abc123",
+    "name": "WELCOME_DISCOUNT",
+    "displayName": "Welcome Discount Offer",
+    "channel": "whatsapp",
+    "whatsappTemplateName": "blackbird_welcome_discount",
+    "languageCode": "en",
+    "bodyExample": "Hello {{1}}, enjoy a {{2}}% discount until {{3}}!",
+    "parameters": [...],
+    "isActive": true,
+    "createdBy": { "name": "Admin", "email": "admin@example.com" },
+    "createdAt": "2026-01-19T10:00:00.000Z",
+    "updatedAt": "2026-01-19T10:00:00.000Z"
+  }
+}
+```
 
 ---
 
-## 6. Date Filter on Bookings
+### 2.4 Update Template
 
-**GET /api/bookings** supports filtering by booking date.
+**PUT** `/api/marketing/templates/:id`
 
-### Query Parameters
+**Request Body:** Any fields to update (e.g., `{ "isActive": false }` or `{ "parameters": [...] }`)
 
-| Param       | Type   | Format     | Description                    |
-|------------|--------|------------|--------------------------------|
-| `startDate`| string | YYYY-MM-DD | Start of date range (inclusive). |
-| `endDate`  | string | YYYY-MM-DD | End of date range (inclusive).  |
-
-### Example
-
-- **GET /api/bookings?startDate=2026-01-01&endDate=2026-01-31**  
-  Returns only bookings whose `date` falls in January 2026.
-
-- Can be combined with **branchId**, **page**, and **limit**:  
-  `?branchId=678b001&startDate=2026-01-01&endDate=2026-01-31&page=1&limit=20`
+**Response (200):** Updated template document
 
 ---
 
-## 7. Summary Table
+### 2.5 Delete Template
 
-| Feature              | Endpoint / Area      | Change |
-|----------------------|----------------------|--------|
-| Settings             | GET/PUT /api/settings | New; single doc in DB; admin only. |
-| Self-invoice         | Booking creation     | New; send invoice to WHATSAPP_NUM when enabled. |
-| Reminder cron        | Server job           | New; every 12h; template blackbird_checkup_reminder; reminderSentAt on Booking. |
-| Branch filter        | GET /employees, /users, /bookings | New optional `branchId` query. |
-| Pagination           | GET /bookings, /users, /employees | New `page`, `limit`; response has `count`, `total`, `page`, `limit`. |
-| Date filter          | GET /bookings        | New `startDate`, `endDate` (YYYY-MM-DD). |
+**DELETE** `/api/marketing/templates/:id`
+
+**Response (200):**
+```json
+{
+  "message": "Template deleted successfully",
+  "data": {
+    "deletedTemplate": {
+      "id": "tpl_abc123",
+      "name": "WELCOME_DISCOUNT",
+      "displayName": "Welcome Discount Offer"
+    }
+  }
+}
+```
 
 ---
 
-## 8. Postman Collection
+## 3. Preview & Send APIs
 
-The Postman collection has been updated with:
+### 3.1 Preview Template
 
-- **Settings** folder: **Get Settings** and **Update Settings** with example requests and responses.
-- **Get Bookings**: URL and description updated for `branchId`, `startDate`, `endDate`, `page`, `limit`; response example includes `total`, `page`, `limit`, and `reminderSentAt`.
-- **Get All Employees**: URL and description for `branchId`, `page`, `limit`; response example includes `total`, `page`, `limit`.
-- **Get All Users**: URL and description for `branchId`, `page`, `limit`; response example includes `total`, `page`, `limit`.
+**POST** `/api/marketing/templates/:id/preview`
 
-Use the examples in the collection to see the exact request query params and response shape for each API.
+Preview how a template will look with given parameters **without sending**.
+
+**Request Body:**
+```json
+{
+  "parameters": {
+    "customer_name": "John",
+    "discount_percent": 20,
+    "expiry_date": "31 Jan 2026"
+  }
+}
+```
+
+**Response (200):**
+```json
+{
+  "message": "Preview generated successfully",
+  "data": {
+    "renderedText": "Hello John, enjoy a 20% discount until 31 Jan 2026!",
+    "whatsappTemplateName": "blackbird_welcome_discount",
+    "languageCode": "en",
+    "mappedParameters": ["John", "20", "31 Jan 2026"]
+  }
+}
+```
+
+**Note:** You can provide typed values OR enum values (like `"user_fullName"`). Enum values will show as empty in preview since no user data is available - they're resolved when actually sending.
+
+**How it works:**
+1. Loads template from database
+2. For each parameter:
+   - If value is an enum (like `"user_fullName"`) → resolves to empty string (preview doesn't have user data)
+   - Otherwise → uses provided value as-is
+   - If `source: "static"` → uses value from `parameters` object
+3. Maps to ordered array based on `position` (1→{{1}}, 2→{{2}}, etc.)
+4. Replaces `{{n}}` in `bodyExample` with actual values
+5. Returns preview text and the ordered array that will be sent to WhatsApp
+
+---
+
+### 3.2 Send Marketing Message
+
+**POST** `/api/marketing/templates/:id/send`
+
+Sends marketing messages to an audience using the template.
+
+**Request Body Structure:**
+```json
+{
+  "audience": {
+    "type": "single" | "list" | "branch_customers" | "all_customers",
+    // ... audience-specific fields (see below)
+  },
+  "parameters": {
+    "name": "user_fullName",    // ← Enum value (resolved from database)
+    "percent": 20,               // ← Typed value
+    "days": 30                   // ← Typed value
+  }
+}
+```
+
+**Parameter Values:**
+- **Type a value** (string/number) → Used as-is
+- **OR select enum** (like `"user_fullName"`, `"branch_name"`) → System resolves from database automatically
+
+**Available Enum Values:** Get via `GET /api/marketing/dynamic-fields`
+- `user_fullName` - Customer's full name
+- `user_phone` - Customer's phone
+- `user_email` - Customer's email
+- `branch_name` - Branch name
+- `branch_number` - Branch number
+
+---
+
+## 4. Audience Types
+
+### 4.1 Single Phone
+
+Send to one phone number.
+
+**Request:**
+```json
+{
+  "audience": {
+    "type": "single",
+    "phone": "9876543210"
+  },
+  "parameters": {
+    "discount_percent": 20,
+    "expiry_date": "31 Jan 2026"
+  }
+}
+```
+
+**How it works:**
+- Sends one message to the specified phone number
+- If parameter value is an enum (like `"user_fullName"`), system tries to find user by phone and resolves the value
+- Otherwise, uses typed value as-is
+
+---
+
+### 4.2 List of Phones
+
+Send to multiple phone numbers (same message for all).
+
+**Request:**
+```json
+{
+  "audience": {
+    "type": "list",
+    "phones": ["9876543210", "9123456789", "9988776655"]
+  },
+  "parameters": {
+    "discount_percent": 15,
+    "expiry_date": "15 Feb 2026"
+  }
+}
+```
+
+**How it works:**
+- Sends the same message to all phones in the array
+- If parameter value is an enum (like `"user_fullName"`), system tries to resolve from database for each phone
+- Otherwise, uses typed value for all recipients
+
+---
+
+### 4.3 Branch Customers (with Date Filter)
+
+Send to all customers who have bookings at a specific branch, optionally filtered by booking date.
+
+**Request:**
+```json
+{
+  "audience": {
+    "type": "branch_customers",
+    "branchId": "678b001",
+    "dateFilter": {
+      "startDate": "2026-01-01",
+      "endDate": "2026-01-31"
+    }
+  },
+  "parameters": {
+    "name": "user_fullName",    // ← Enum: auto-filled from each customer
+    "percent": 15,               // ← Typed value: same for all
+    "days": 30                   // ← Typed value: same for all
+  }
+}
+```
+
+**How it works:**
+1. Queries `Booking` collection:
+   - Filters by `branchId = "678b001"`
+   - If `dateFilter` provided: filters by `date` between `startDate` and `endDate`
+   - Gets distinct `userId` values
+2. Loads `User` documents for those `userId`s
+3. Loads `Branch` document for `branchId` (for resolving `branch_*` enum values)
+4. For each user:
+   - Checks each parameter value:
+     - If enum (like `"user_fullName"`) → resolves from `user` or `branch` object
+     - Otherwise → uses typed value as-is
+   - Builds ordered parameter array
+   - Sends WhatsApp message to `user.phone`
+5. Returns send job with stats
+
+**Date Filter:**
+- If `dateFilter` is provided: only customers with bookings in that date range
+- If omitted: all customers who have bookings at that branch
+
+**Enum Resolution:**
+- `"user_fullName"` → Gets `user.fullName` for each customer
+- `"branch_name"` → Gets `branch.name` (same for all customers in branch)
+- Typed values → Used as-is for all customers
+
+---
+
+### 4.4 All Customers (with Date Filter)
+
+Send to all customers in the system, optionally filtered by booking date.
+
+**Request:**
+```json
+{
+  "audience": {
+    "type": "all_customers",
+    "dateFilter": {
+      "startDate": "2026-01-01",
+      "endDate": "2026-01-31"
+    }
+  },
+  "parameters": {
+    "name": "user_fullName",    // ← Enum: auto-filled from each customer
+    "percent": 10,               // ← Typed value: same for all
+    "days": 30                   // ← Typed value: same for all
+  }
+}
+```
+
+**How it works:**
+1. Queries `Booking` collection:
+   - If `dateFilter` provided: filters by `date` between `startDate` and `endDate`
+   - Gets distinct `userId` values
+2. If no `dateFilter`: gets all `User` documents
+3. For each user:
+   - Checks each parameter value:
+     - If enum (like `"user_fullName"`) → resolves from `user` object
+     - Otherwise → uses typed value as-is
+   - Builds ordered parameter array and sends WhatsApp message
+
+**Date Filter:**
+- If provided: only customers with bookings in that date range
+- If omitted: all customers in the system
+
+---
+
+## 5. Send Job Tracking
+
+Every send operation creates a **MarketingSend** document that tracks the job.
+
+### Send Job Fields
+
+| Field             | Type     | Description |
+|-------------------|----------|-------------|
+| `templateId`      | ObjectId | Template used |
+| `triggeredBy`     | ObjectId | Admin who triggered it |
+| `audienceType`    | String   | `single`, `list`, `branch_customers`, `all_customers` |
+| `audienceFilter`  | Object   | Audience configuration (type, phone, branchId, dateFilter, etc.) |
+| `parameters`      | Object   | Parameters used (can include enum values like `"user_fullName"`) |
+| `status`          | String   | `pending`, `running`, `completed`, `failed`, `partial` |
+| `stats`           | Object   | `{ total, success, failed }` |
+| `completedAt`     | Date     | When job finished |
+
+### Send Response
+
+**POST** `/api/marketing/templates/:id/send` returns immediately:
+
+```json
+{
+  "message": "Marketing send started",
+  "data": {
+    "_id": "ms_123",
+    "templateId": "tpl_abc123",
+    "triggeredBy": "678a123",
+    "audienceType": "branch_customers",
+    "audienceFilter": {
+      "type": "branch_customers",
+      "branchId": "678b001",
+      "dateFilter": { "startDate": "2026-01-01", "endDate": "2026-01-31" }
+    },
+    "parameters": { "name": "user_fullName", "percent": 15, "days": 30 },
+    "status": "pending",
+    "stats": { "total": 0, "success": 0, "failed": 0 },
+    "createdAt": "2026-01-19T10:00:00.000Z"
+  }
+}
+```
+
+The job runs **synchronously** (sends all messages before returning), so the response includes final stats.
+
+---
+
+## 6. Send Job APIs
+
+### 6.1 Get Send Job by ID
+
+**GET** `/api/marketing/sends/:id`
+
+**Response (200):**
+```json
+{
+  "message": "Send job fetched successfully",
+  "data": {
+    "_id": "ms_123",
+    "templateId": {
+      "_id": "tpl_abc123",
+      "name": "WELCOME_DISCOUNT",
+      "displayName": "Welcome Discount Offer",
+      "whatsappTemplateName": "blackbird_welcome_discount"
+    },
+    "triggeredBy": {
+      "_id": "678a123",
+      "name": "Admin",
+      "email": "admin@example.com"
+    },
+    "audienceType": "branch_customers",
+    "audienceFilter": {...},
+    "parameters": { "name": "user_fullName", "percent": 15, "days": 30 },
+    "status": "completed",
+    "stats": {
+      "total": 120,
+      "success": 115,
+      "failed": 5
+    },
+    "completedAt": "2026-01-19T10:05:00.000Z",
+    "createdAt": "2026-01-19T10:00:00.000Z"
+  }
+}
+```
+
+---
+
+### 6.2 List Send Jobs
+
+**GET** `/api/marketing/sends?page=1&limit=10`
+
+**Response (200):**
+```json
+{
+  "message": "Send jobs fetched successfully",
+  "data": {
+    "count": 10,
+    "total": 25,
+    "page": 1,
+    "limit": 10,
+    "sends": [
+      {
+        "_id": "ms_123",
+        "templateId": {
+          "name": "WELCOME_DISCOUNT",
+          "displayName": "Welcome Discount Offer"
+        },
+        "triggeredBy": {
+          "name": "Admin",
+          "email": "admin@example.com"
+        },
+        "audienceType": "branch_customers",
+        "status": "completed",
+        "stats": { "total": 120, "success": 115, "failed": 5 },
+        "createdAt": "2026-01-19T10:00:00.000Z"
+      }
+    ]
+  }
+}
+```
+
+---
+
+## 7. How It Works Internally
+
+### 7.1 Parameter Mapping
+
+When you send a message:
+
+1. **Load template** from database (includes `parameters` array with `position` and `source` values)
+2. **Build ordered array:**
+   - Sort parameters by `position` (1, 2, 3...)
+   - For each parameter:
+     - If `source: "user"` → get value from `user[userField]` (e.g., `user.fullName`)
+     - If `source: "static"` → get value from `parameters` object using `key`
+     - Convert to string (numbers converted to string)
+     - Add to ordered array
+3. **Send to WhatsApp:**
+   - Uses `buildTemplatePayload(templateName, orderedArray, languageCode)`
+   - Calls Meta WhatsApp API with template name and ordered parameters
+
+**Example:**
+- Template has: `[{ key: "customer_name", position: 1 }, { key: "discount_percent", position: 2 }]`
+- You provide: `{ customer_name: "John", discount_percent: 20 }`
+- Ordered array: `["John", "20"]`
+- WhatsApp receives: `{{1}} = "John"`, `{{2}} = "20"`
+
+---
+
+### 7.2 Audience Resolution
+
+**For `branch_customers` and `all_customers`:**
+
+1. **Query bookings:**
+   ```javascript
+   const query = {};
+   if (branchId) query.branchId = branchId;
+   if (dateFilter) {
+     query.date = { $gte: startDate, $lte: endDate };
+   }
+   const userIds = await Booking.distinct('userId', query);
+   ```
+
+2. **Load users:**
+   ```javascript
+   const users = await User.find({ _id: { $in: userIds } });
+   ```
+
+3. **Load branch** (if `branchId` provided, for resolving `branch_*` enum values)
+4. **Send to each:**
+   - For each user, build parameters (resolve enum values from `user`/`branch` objects)
+   - Send WhatsApp message to `user.phone`
+
+---
+
+### 7.3 WhatsApp Integration
+
+- Uses existing `whatsapp.service.js` with new `sendMarketingMessage()` method
+- Respects `settings.whatsappEnabled` (if disabled, send fails)
+- Uses `buildTemplatePayload()` from `whatsappTemplates.js` (already generic)
+- Phone numbers are formatted: removes non-digits, ensures `+91` prefix
+
+---
+
+## 8. Validation & Error Handling
+
+### Template Creation
+- `name` must be unique
+- Parameter positions must be contiguous (1, 2, 3...)
+- `whatsappTemplateName` must match Meta template name exactly
+
+### Sending
+- Template must exist and be `isActive`
+- `whatsappEnabled` must be `true` in settings
+- Provide all **required parameters** (can be typed values OR enum values)
+- Enum values (like `"user_fullName"`) are resolved from database automatically
+- Get available enum options via `GET /api/marketing/dynamic-fields`
+- Audience validation:
+  - `single`: `phone` required
+  - `list`: `phones` array required
+  - `branch_customers`: `branchId` required
+- Date filter: `startDate` and `endDate` must be valid YYYY-MM-DD format
+
+---
+
+## 9. Summary
+
+| Feature | Endpoint | Description |
+|---------|----------|-------------|
+| Create template | POST `/api/marketing/templates` | Create new marketing template |
+| List templates | GET `/api/marketing/templates` | List with filters + pagination |
+| Get template | GET `/api/marketing/templates/:id` | Get single template |
+| Update template | PUT `/api/marketing/templates/:id` | Update template fields |
+| Delete template | DELETE `/api/marketing/templates/:id` | Delete template |
+| Get dynamic fields | GET `/api/marketing/dynamic-fields` | Get enum options for dropdown |
+| Preview | POST `/api/marketing/templates/:id/preview` | Preview with parameters |
+| Send | POST `/api/marketing/templates/:id/send` | Send to audience |
+| Get send job | GET `/api/marketing/sends/:id` | Get send job details |
+| List send jobs | GET `/api/marketing/sends` | List send jobs with pagination |
+
+**All endpoints are admin-only** (require authentication + admin role).
+
+---
+
+## 10. Postman Collection
+
+The Postman collection includes all marketing template endpoints with:
+- Example request bodies
+- Example responses (success cases)
+- Test scripts for validation
+
+Use the collection to test template creation, preview, and sending to different audience types.

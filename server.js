@@ -16,6 +16,7 @@ const bookingRoutes = require('./src/routes/booking.routes');
 const userRoutes = require('./src/routes/user.routes');
 const dashboardRoutes = require('./src/routes/dashboard.routes');
 const settingsRoutes = require('./src/routes/settings.routes');
+const marketingRoutes = require('./src/routes/marketing.routes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -91,6 +92,7 @@ app.get('/', (req, res) => {
         users: '/api/users',
         dashboard: '/api/dashboard',
         settings: '/api/settings',
+        marketing: '/api/marketing',
       }
     }
   });
@@ -104,6 +106,7 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/marketing', marketingRoutes);
 
 // 404 handler - must be after all routes
 app.use(notFoundHandler);
