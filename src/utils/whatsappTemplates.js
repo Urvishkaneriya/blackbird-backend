@@ -20,14 +20,26 @@ const TEMPLATE_NAMES = {
   BLACKBIRD_CHECKUP_REMINDER: 'blackbird_checkup_reminder',
 };
 
-// Default language for templates
+// Default language for templates (same as invoice/reminder – Meta expects this format)
 const DEFAULT_LANGUAGE = 'en';
+
+/**
+ * Normalize language code for WhatsApp API. Meta templates use base code (e.g. "en");
+ * locale variants like "en_US" can cause 132012 if template was created as "English" (en).
+ * Use base part only so we match how invoice/reminder send (no 3rd arg = default "en").
+ */
+function normalizeLanguageCode(code) {
+  const raw = (code || DEFAULT_LANGUAGE).trim();
+  if (!raw) return DEFAULT_LANGUAGE;
+  const base = raw.split('_')[0].toLowerCase();
+  return base || DEFAULT_LANGUAGE;
+}
 
 /**
  * Build template payload for WhatsApp Cloud API
  * @param {String} templateName - Template name from TEMPLATE_NAMES
  * @param {Array<{type: string, text: string}>} bodyParameters - Ordered parameters for {{1}}, {{2}}, etc.
- * @param {String} languageCode - Optional language code (default: 'en')
+ * @param {String} languageCode - Optional language code (default: 'en'); normalized to base (en_US → en)
  * @returns {Object} Template object for API payload
  */
 function buildTemplatePayload(templateName, bodyParameters, languageCode = DEFAULT_LANGUAGE) {
@@ -35,15 +47,19 @@ function buildTemplatePayload(templateName, bodyParameters, languageCode = DEFAU
     throw new Error('bodyParameters must be a non-empty array');
   }
 
-  const parameters = bodyParameters.map((text) => ({
-    type: 'text',
-    text: String(text),
-  }));
+  // WhatsApp rejects empty or invalid body parameter values; sanitize for 132012
+  const parameters = bodyParameters.map((val) => {
+    let text = val === null || val === undefined ? '' : String(val);
+    text = text.trim().replace(/\r?\n/g, ' '); // no newlines in body params
+    if (text === '') text = '-'; // avoid empty string (can cause parameter format mismatch)
+    return { type: 'text', text };
+  });
 
+  const name = (templateName || '').trim();
   return {
-    name: templateName,
+    name,
     language: {
-      code: languageCode,
+      code: normalizeLanguageCode(languageCode),
     },
     components: [
       {
@@ -117,6 +133,7 @@ function getBlackbirdCheckupReminderPayload(fullName, daysPassed) {
 module.exports = {
   TEMPLATE_NAMES,
   DEFAULT_LANGUAGE,
+  normalizeLanguageCode,
   buildTemplatePayload,
   getBlackbirdInvoicePayload,
   getBlackbirdCheckupReminderPayload,

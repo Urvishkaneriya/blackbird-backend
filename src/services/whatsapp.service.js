@@ -110,7 +110,8 @@ class WhatsAppService {
       }
 
       const formattedPhone = phone.replace(/\D/g, '');
-      const template = buildTemplatePayload(templateName, orderedParameters, languageCode);
+      // Trim template name - Meta expects exact match (no leading/trailing spaces)
+      const template = buildTemplatePayload((templateName || '').trim(), orderedParameters, (languageCode || 'en').trim());
       const apiUrl = `https://graph.facebook.com/v18.0/${process.env.TEST_NUM_ID}/messages`;
 
       const payload = {
@@ -131,15 +132,26 @@ class WhatsAppService {
       console.log('✅ WhatsApp marketing message sent:', response.data);
       return { success: true, data: response.data };
     } catch (error) {
+      const errData = error.response?.data;
+      const code = errData?.error?.code;
       console.error('❌ WhatsApp marketing message failed:', {
         message: error.message,
-        response: error.response?.data,
+        response: errData,
         phone: phone,
       });
+      // Log payload when parameter format error (132012) to help debug
+      if (code === 132012) {
+        console.error('❌ [132012] Template payload sent (check name + params match Meta exactly):', {
+          templateName: (templateName || '').trim(),
+          languageCode: (languageCode || 'en').trim(),
+          parameterCount: Array.isArray(orderedParameters) ? orderedParameters.length : 0,
+          parameters: Array.isArray(orderedParameters) ? orderedParameters.map((p, i) => `{{${i + 1}}}=${JSON.stringify(p)}`) : orderedParameters,
+        });
+      }
       return {
         success: false,
         message: error.message,
-        error: error.response?.data || error.message,
+        error: errData || error.message,
       };
     }
   }
