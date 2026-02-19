@@ -57,6 +57,7 @@ Use this as the source of truth for frontend implementation.
 ```json
 {
   "phone": "9876543210",
+  "birthday": "1998-08-15",
   "email": "customer@example.com",
   "fullName": "Jane Customer",
   "artistName": "Mike Tattoo Artist",
@@ -133,9 +134,10 @@ Each booking now includes:
 
 1. `items` must contain at least 1 row.
 2. Each item requires `productId` and integer `quantity >= 1`.
-3. For `Tattoo` (default product), `unitPrice` is required and editable.
-4. For non-default products, frontend may send `unitPrice` but backend ignores it and uses catalog `basePrice`.
-5. Payment rules:
+3. `birthday` is mandatory in booking payload (`YYYY-MM-DD`).
+4. For `Tattoo` (default product), `unitPrice` is required and editable.
+5. For non-default products, frontend may send `unitPrice` but backend ignores it and uses catalog `basePrice`.
+6. Payment rules:
    1. `cashAmount >= 0`
    2. `upiAmount >= 0`
    3. at least one must be > 0
@@ -199,3 +201,40 @@ Postman collection has been updated with:
 4. Environment vars:
    1. `defaultProductId`
    2. `lastCreatedProductId`
+
+## 9. Users API Update (Birthday Filter + Employee Access)
+
+### Endpoint
+
+`GET /api/users`
+
+### Access
+
+1. Admin can access.
+2. Employee can access.
+3. Employee is automatically restricted to their own branch users.
+
+### Query params
+
+1. `branchId` (optional, admin only)
+2. `birthday` (optional, format: `YYYY-MM-DD`)
+3. `page` (optional, default 1)
+4. `limit` (optional, default 10, max 100)
+
+### Birthday filter behavior
+
+1. Filter matches by day + month of stored user birthday.
+2. Year part in query is ignored for matching.
+3. Invalid date format returns `400` with message: `Invalid birthday format. Use YYYY-MM-DD.`
+
+### User model update
+
+1. Added `birthday` field (Date, optional).
+2. Added birthday index for query performance.
+
+### Booking payload support
+
+`POST /api/bookings` now requires `birthday`.
+
+1. If customer is new, birthday is stored.
+2. If customer already exists, birthday is updated from booking payload.

@@ -27,12 +27,13 @@ class UserService {
    * @returns {Promise<Object>} Created user document
    */
   async createUser(userData) {
-    const { fullName, phone, email } = userData;
+    const { fullName, phone, email, birthday } = userData;
 
     const user = new User({
       fullName,
       phone,
       email,
+      birthday: birthday ? new Date(birthday) : null,
       totalOrders: 0,
       totalAmount: 0,
     });
@@ -70,12 +71,22 @@ class UserService {
   }
 
   /**
+   * Update user birthday
+   * @param {String} userId - User ID
+   * @param {String|Date} birthday - Birthday value
+   * @returns {Promise<Object>} Updated user document
+   */
+  async updateUserBirthday(userId, birthday) {
+    return await User.findByIdAndUpdate(userId, { birthday: new Date(birthday) }, { new: true });
+  }
+
+  /**
    * Get all users (optionally filtered by branchId = users with booking at that branch), with pagination
-   * @param {Object} filters - { branchId?, page?, limit? }
+   * @param {Object} filters - { branchId?, birthday?, page?, limit? }
    * @returns {Promise<{ users: Array, total: Number }>}
    */
   async getUsers(filters = {}) {
-    const { branchId, page = 1, limit = 10 } = filters;
+    const { branchId, birthday, page = 1, limit = 10 } = filters;
     const safeLimit = Math.min(Math.max(Number(limit) || 10, 1), 100);
     const skip = (Math.max(Number(page) || 1, 1) - 1) * safeLimit;
 
@@ -83,6 +94,21 @@ class UserService {
     if (branchId) {
       const userIds = await Booking.distinct('userId', { branchId: new mongoose.Types.ObjectId(branchId) });
       query = { _id: { $in: userIds } };
+    }
+
+    if (birthday) {
+      const bd = new Date(birthday);
+      if (Number.isNaN(bd.getTime())) {
+        throw new Error('Invalid birthday format. Use YYYY-MM-DD.');
+      }
+      const day = bd.getUTCDate();
+      const month = bd.getUTCMonth() + 1;
+      query.$expr = {
+        $and: [
+          { $eq: [{ $dayOfMonth: '$birthday' }, day] },
+          { $eq: [{ $month: '$birthday' }, month] },
+        ],
+      };
     }
 
     const [users, total] = await Promise.all([

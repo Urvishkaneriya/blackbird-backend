@@ -21,6 +21,7 @@ class BookingService {
     const {
       phone,
       email,
+      birthday,
       fullName,
       size,
       artistName,
@@ -34,6 +35,13 @@ class BookingService {
     if (!branch) {
       throw new Error('Branch not found');
     }
+    if (!birthday) {
+      throw new Error('birthday is required');
+    }
+    const incomingBirthday = new Date(birthday);
+    if (Number.isNaN(incomingBirthday.getTime())) {
+      throw new Error('Invalid birthday format. Use YYYY-MM-DD.');
+    }
 
     const normalizedItems = await this.normalizeBookingItems(items);
     const itemTotal = normalizedItems.reduce((sum, item) => sum + item.lineTotal, 0);
@@ -44,12 +52,21 @@ class BookingService {
       if (email && email !== user.email) {
         await userService.updateUserEmail(user._id, email);
       }
+      const existingBirthday = user.birthday ? new Date(user.birthday) : null;
+      const sameBirthday = existingBirthday &&
+        existingBirthday.getUTCFullYear() === incomingBirthday.getUTCFullYear() &&
+        existingBirthday.getUTCMonth() === incomingBirthday.getUTCMonth() &&
+        existingBirthday.getUTCDate() === incomingBirthday.getUTCDate();
+      if (!sameBirthday) {
+        await userService.updateUserBirthday(user._id, incomingBirthday);
+      }
       await userService.updateUserStats(user._id, normalizedPayment.totalAmount);
     } else {
       user = await userService.createUser({
         fullName,
         phone,
         email,
+        birthday,
       });
       await userService.updateUserStats(user._id, normalizedPayment.totalAmount);
     }
@@ -197,7 +214,7 @@ class BookingService {
     const [bookings, total] = await Promise.all([
       Booking.find(query)
         .populate('branchId', 'name branchNumber')
-        .populate('userId', 'fullName phone email')
+        .populate('userId', 'fullName phone email birthday')
         .populate('items.productId', 'name isDefault isActive')
         .sort({ date: -1 })
         .skip(skip)
@@ -228,7 +245,7 @@ class BookingService {
   async getBookingsByEmployee(employeeId) {
     return Booking.find({ employeeId })
       .populate('branchId', 'name branchNumber')
-      .populate('userId', 'fullName phone email')
+      .populate('userId', 'fullName phone email birthday')
       .populate('items.productId', 'name isDefault isActive')
       .sort({ date: -1 });
   }
@@ -236,7 +253,7 @@ class BookingService {
   async findById(id) {
     return Booking.findById(id)
       .populate('branchId', 'name branchNumber')
-      .populate('userId', 'fullName phone email')
+      .populate('userId', 'fullName phone email birthday')
       .populate('items.productId', 'name isDefault isActive');
   }
 

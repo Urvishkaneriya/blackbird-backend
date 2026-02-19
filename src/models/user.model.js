@@ -20,6 +20,10 @@ const userSchema = new mongoose.Schema(
       trim: true,
       match: [VALIDATION.EMAIL_REGEX, 'Please provide a valid email address'],
     },
+    birthday: {
+      type: Date,
+      default: null,
+    },
     totalOrders: {
       type: Number,
       default: 0,
@@ -39,6 +43,7 @@ const userSchema = new mongoose.Schema(
 // Indexes for faster queries
 userSchema.index({ phone: 1 });
 userSchema.index({ email: 1 });
+userSchema.index({ birthday: 1 });
 
 // Remove __v from JSON responses
 userSchema.methods.toJSON = function () {

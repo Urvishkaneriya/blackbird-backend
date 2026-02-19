@@ -18,6 +18,7 @@ class BookingController {
       const {
         phone,
         email,
+        birthday,
         fullName,
         size,
         artistName,
@@ -27,10 +28,10 @@ class BookingController {
       } = req.body;
 
       // Validation (employeeId = creator, set from token)
-      if (!phone || !fullName || !artistName || !branchId) {
+      if (!phone || !birthday || !fullName || !artistName || !branchId) {
         return badRequestResponse(
           res,
-          'Required fields: phone, fullName, artistName, branchId'
+          'Required fields: phone, birthday, fullName, artistName, branchId'
         );
       }
 
@@ -42,10 +43,16 @@ class BookingController {
         return badRequestResponse(res, MESSAGES.INVALID_PAYMENT_BREAKDOWN);
       }
 
+      const bd = new Date(birthday);
+      if (Number.isNaN(bd.getTime())) {
+        return badRequestResponse(res, 'Invalid birthday format. Use YYYY-MM-DD.');
+      }
+
       // Create booking (employeeId = creator id from token - admin or employee)
       const booking = await bookingService.createBooking({
         phone,
         email,
+        birthday,
         fullName,
         size,
         artistName,
@@ -69,6 +76,12 @@ class BookingController {
         return badRequestResponse(res, error.message);
       }
       if (error.message.includes('Payment') || error.message.includes('payment')) {
+        return badRequestResponse(res, error.message);
+      }
+      if (error.message === 'birthday is required') {
+        return badRequestResponse(res, error.message);
+      }
+      if (error.message === 'Invalid birthday format. Use YYYY-MM-DD.') {
         return badRequestResponse(res, error.message);
       }
       next(error);

@@ -1081,7 +1081,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone\": \"{{testCustomerPhone}}\",\n  \"email\": \"customer@example.com\",\n  \"fullName\": \"Jane Customer\",\n  \"artistName\": \"Mike Tattoo Artist\",\n  \"size\": 5,\n  \"branchId\": \"{{lastCreatedBranchId}}\",\n  \"items\": [\n    {\n      \"productId\": \"{{defaultProductId}}\",\n      \"quantity\": 1,\n      \"unitPrice\": 300\n    },\n    {\n      \"productId\": \"{{lastCreatedProductId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"payment\": {\n    \"cashAmount\": 300,\n    \"upiAmount\": 400\n  }\n}"
+              "raw": "{\n  \"phone\": \"{{testCustomerPhone}}\",\n  \"email\": \"customer@example.com\",\n  \"fullName\": \"Jane Customer\",\n  \"artistName\": \"Mike Tattoo Artist\",\n  \"size\": 5,\n  \"branchId\": \"{{lastCreatedBranchId}}\",\n  \"items\": [\n    {\n      \"productId\": \"{{defaultProductId}}\",\n      \"quantity\": 1,\n      \"unitPrice\": 300\n    },\n    {\n      \"productId\": \"{{lastCreatedProductId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"payment\": {\n    \"cashAmount\": 300,\n    \"upiAmount\": 400\n  },\n  \"birthday\": \"1998-08-15\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/bookings",
@@ -1093,7 +1093,7 @@
                 "bookings"
               ]
             },
-            "description": "Create a booking/invoice with product line items and split/single payment. Required: phone, fullName, artistName, branchId, items[], payment{cashAmount, upiAmount}. Optional: email, size. Default Tattoo product unitPrice is editable per booking; admin-created product price is fixed from catalog."
+            "description": "Create a booking/invoice with product line items and split/single payment. Required: phone, birthday (YYYY-MM-DD), fullName, artistName, branchId, items[], payment{cashAmount, upiAmount}. Optional: email, size. Default Tattoo product unitPrice is editable per booking; admin-created product price is fixed from catalog."
           },
           "response": [
             {
@@ -1107,7 +1107,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\"message\":\"Booking created successfully\",\"data\":{\"_id\":\"678bk001\",\"bookingNumber\":\"INV0001\",\"phone\":\"9876543210\",\"fullName\":\"Jane Customer\",\"artistName\":\"Mike Tattoo Artist\",\"size\":5,\"branchId\":\"678b001\",\"employeeId\":\"678a123\",\"userId\":\"678u001\",\"items\":[{\"productId\":\"678p0001\",\"productName\":\"Tattoo\",\"quantity\":1,\"unitPrice\":300,\"lineTotal\":300},{\"productId\":\"678p0002\",\"productName\":\"Aftercare Kit\",\"quantity\":1,\"unitPrice\":400,\"lineTotal\":400}],\"payment\":{\"cashAmount\":300,\"upiAmount\":400,\"totalAmount\":700,\"paymentMode\":\"SPLIT\"},\"amount\":700,\"paymentMethod\":\"CASH + UPI\",\"date\":\"2026-02-13T10:00:00.000Z\",\"createdAt\":\"2026-02-13T10:00:00.000Z\",\"updatedAt\":\"2026-02-13T10:00:00.000Z\"}}"
+              "body": "{\"message\":\"Booking created successfully\",\"data\":{\"_id\":\"678bk001\",\"bookingNumber\":\"INV0001\",\"phone\":\"9876543210\",\"fullName\":\"Jane Customer\",\"artistName\":\"Mike Tattoo Artist\",\"size\":5,\"branchId\":\"678b001\",\"employeeId\":\"678a123\",\"userId\":\"678u001\",\"items\":[{\"productId\":\"678p0001\",\"productName\":\"Tattoo\",\"quantity\":1,\"unitPrice\":300,\"lineTotal\":300},{\"productId\":\"678p0002\",\"productName\":\"Aftercare Kit\",\"quantity\":1,\"unitPrice\":400,\"lineTotal\":400}],\"payment\":{\"cashAmount\":300,\"upiAmount\":400,\"totalAmount\":700,\"paymentMode\":\"SPLIT\"},\"amount\":700,\"paymentMethod\":\"CASH + UPI\",\"date\":\"2026-02-13T10:00:00.000Z\",\"createdAt\":\"2026-02-13T10:00:00.000Z\",\"updatedAt\":\"2026-02-13T10:00:00.000Z\",\"birthday\":\"1998-08-15T00:00:00.000Z\"}}"
             }
           ]
         },
@@ -1218,7 +1218,9 @@
                   "    pm.expect(jsonData.data).to.have.property('total');",
                   "    pm.expect(jsonData.data).to.have.property('page');",
                   "    pm.expect(jsonData.data).to.have.property('limit');",
-                  "    console.log('✅ Found', jsonData.data.count, 'of', jsonData.data.total, 'customers');",
+                  "    if (jsonData.data.users.length > 0) {",
+                  "        pm.expect(jsonData.data.users[0]).to.have.property('birthday');",
+                  "    }",
                   "});"
                 ]
               }
@@ -1228,7 +1230,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/users?page=1&limit=10",
+              "raw": "{{baseUrl}}/api/users?birthday=1998-08-15&page=1&limit=10",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1241,7 +1243,13 @@
                   "key": "branchId",
                   "value": "",
                   "disabled": true,
-                  "description": "Filter: users with booking at this branch (optional)"
+                  "description": "Admin only optional filter (employee will be forced to own branch)"
+                },
+                {
+                  "key": "birthday",
+                  "value": "1998-08-15",
+                  "disabled": false,
+                  "description": "Optional birthday filter (YYYY-MM-DD). Matches day+month."
                 },
                 {
                   "key": "page",
@@ -1253,11 +1261,11 @@
                 }
               ]
             },
-            "description": "Get all customers (Admin only). Query: branchId (optional), page (default 1), limit (default 10, max 100). Response: count, total, page, limit, users."
+            "description": "Get customers. Access: Admin and Employee. Admin can optionally filter by branchId. Employee is restricted to own branch automatically. Optional birthday filter: YYYY-MM-DD (matches day and month)."
           },
           "response": [
             {
-              "name": "Success",
+              "name": "Admin - with birthday filter",
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
@@ -1267,7 +1275,20 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\"message\": \"Users fetched successfully\", \"data\": {\"count\": 1, \"total\": 1, \"page\": 1, \"limit\": 10, \"users\": [{\"_id\": \"678u001\", \"fullName\": \"Jane Customer\", \"phone\": \"9876543210\", \"email\": \"customer@example.com\", \"totalOrders\": 2, \"totalAmount\": 10000, \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T10:00:00.000Z\"}]}}"
+              "body": "{\"message\":\"Users fetched successfully\",\"data\":{\"count\":1,\"total\":1,\"page\":1,\"limit\":10,\"users\":[{\"_id\":\"678u001\",\"fullName\":\"Jane Customer\",\"phone\":\"9876543210\",\"email\":\"customer@example.com\",\"birthday\":\"1998-08-15T00:00:00.000Z\",\"totalOrders\":2,\"totalAmount\":10000,\"createdAt\":\"2026-01-19T10:00:00.000Z\",\"updatedAt\":\"2026-02-19T10:00:00.000Z\"}]}}"
+            },
+            {
+              "name": "Employee - own branch only",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\"message\":\"Users fetched successfully\",\"data\":{\"count\":1,\"total\":1,\"page\":1,\"limit\":10,\"users\":[{\"_id\":\"678u001\",\"fullName\":\"Jane Customer\",\"phone\":\"9876543210\",\"email\":\"customer@example.com\",\"birthday\":\"1998-08-15T00:00:00.000Z\",\"totalOrders\":2,\"totalAmount\":10000}]}}"
             }
           ]
         }

@@ -32,7 +32,8 @@ Run requests in this order:
 3. **Get Products** - Fetch default `Tattoo` product id (auto-saved as `defaultProductId`)
 4. **Create Product** - Create admin-defined product (auto-saved as `lastCreatedProductId`)
 5. **Create Booking** - Use both product ids + split payment payload
-6. **Get Dashboard** - Validate payment + product analytics
+6. **Get All Users** - Validate birthday filter and role access behavior
+7. **Get Dashboard** - Validate payment + product analytics
 
 ## ✨ Features
 
@@ -95,8 +96,13 @@ Each request includes tests that:
 - `PATCH /api/products/:id/status` - Update active status
 
 ### Booking Management
-- `POST /api/bookings` - Create booking with `items[]` and `payment{cashAmount, upiAmount}`
+- `POST /api/bookings` - Create booking with required `birthday`, `items[]`, and `payment{cashAmount, upiAmount}`
 - `GET /api/bookings` - Get bookings with payment split + product line items
+
+### User Management (Admin and Employee)
+- `GET /api/users` - Get users with pagination
+- `GET /api/users?birthday=YYYY-MM-DD` - Birthday filter (matches day+month)
+- `GET /api/users?branchId=<id>` - Admin-only branch filter (employee is auto-scoped to own branch)
 
 ## 🔧 Configuration
 
