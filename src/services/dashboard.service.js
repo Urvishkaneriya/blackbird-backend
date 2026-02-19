@@ -3,33 +3,24 @@ const Booking = require('../models/booking.model');
 const Branch = require('../models/branch.model');
 const User = require('../models/user.model');
 const Employee = require('../models/employee.model');
-const { PAYMENT_METHODS } = require('../config/constants');
+const { PAYMENT_METHODS, PAYMENT_MODES } = require('../config/constants');
 
-/**
- * Get dashboard data for a date range
- * @param {Date} startDate - Start of range (start of day)
- * @param {Date} endDate - End of range (end of day)
- * @returns {Promise<Object>} Dashboard summary and breakdowns
- */
-async function getDashboardData(startDate, endDate) {
+function normalizeDateRange(startDate, endDate) {
   const start = new Date(startDate);
   start.setHours(0, 0, 0, 0);
   const end = new Date(endDate);
   end.setHours(23, 59, 59, 999);
+  return { start, end };
+}
 
-  const matchDateRange = {
-    $gte: start,
-    $lte: end,
-  };
-
-  // 1. Summary for date range (bookings in range)
+async function getSummary(match) {
   const summaryAgg = await Booking.aggregate([
-    { $match: { date: matchDateRange } },
+    { $match: match },
     {
       $group: {
         _id: null,
         totalBookings: { $sum: 1 },
-        totalRevenue: { $sum: '$amount' },
+        totalRevenue: { $sum: '$payment.totalAmount' },
         uniqueCustomers: { $addToSet: '$userId' },
       },
     },
@@ -51,74 +42,140 @@ async function getDashboardData(startDate, endDate) {
 
   const totalBookings = summary.totalBookings || 0;
   const totalRevenue = summary.totalRevenue || 0;
-  const uniqueCustomersCount = summary.uniqueCustomersCount || 0;
   const averageOrderValue = totalBookings > 0 ? Math.round((totalRevenue / totalBookings) * 100) / 100 : 0;
 
-  // 2. By branch (in date range)
-  const byBranchAgg = await Booking.aggregate([
-    { $match: { date: matchDateRange } },
+  return {
+    totalBookings,
+    totalRevenue,
+    uniqueCustomersInRange: summary.uniqueCustomersCount || 0,
+    averageOrderValue,
+  };
+}
+
+async function getPaymentBreakdown(match) {
+  const byMethodAgg = await Booking.aggregate([
+    { $match: match },
     {
       $group: {
-        _id: '$branchId',
-        bookingCount: { $sum: 1 },
-        revenue: { $sum: '$amount' },
-      },
-    },
-    { $sort: { revenue: -1 } },
-    {
-      $lookup: {
-        from: 'branches',
-        localField: '_id',
-        foreignField: '_id',
-        as: 'branch',
-      },
-    },
-    { $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } },
-    {
-      $project: {
-        branchId: '$_id',
-        branchName: '$branch.name',
-        branchNumber: '$branch.branchNumber',
-        employeeCount: '$branch.employeeCount',
-        bookingCount: 1,
-        revenue: 1,
-        _id: 0,
+        _id: null,
+        cashAmount: { $sum: '$payment.cashAmount' },
+        upiAmount: { $sum: '$payment.upiAmount' },
+        cashCount: { $sum: { $cond: [{ $gt: ['$payment.cashAmount', 0] }, 1, 0] } },
+        upiCount: { $sum: { $cond: [{ $gt: ['$payment.upiAmount', 0] }, 1, 0] } },
       },
     },
   ]);
 
-  const byBranch = byBranchAgg.map((row) => ({
-    branchId: row.branchId,
-    branchName: row.branchName || 'N/A',
-    branchNumber: row.branchNumber || 'N/A',
-    employeeCount: row.employeeCount ?? 0,
-    bookingCount: row.bookingCount,
-    revenue: row.revenue,
-  }));
+  const row = byMethodAgg[0] || {
+    cashAmount: 0,
+    upiAmount: 0,
+    cashCount: 0,
+    upiCount: 0,
+  };
 
-  // 3. By payment method (in date range)
-  const byPaymentAgg = await Booking.aggregate([
-    { $match: { date: matchDateRange } },
+  const byPaymentMethod = [
+    {
+      paymentMethod: PAYMENT_METHODS.CASH,
+      count: row.cashCount,
+      totalAmount: row.cashAmount,
+    },
+    {
+      paymentMethod: PAYMENT_METHODS.UPI,
+      count: row.upiCount,
+      totalAmount: row.upiAmount,
+    },
+  ];
+
+  const byModeAgg = await Booking.aggregate([
+    { $match: match },
     {
       $group: {
-        _id: '$paymentMethod',
+        _id: '$payment.paymentMode',
         count: { $sum: 1 },
-        totalAmount: { $sum: '$amount' },
+        totalAmount: { $sum: '$payment.totalAmount' },
       },
     },
   ]);
 
-  const byPaymentMethod = Object.values(PAYMENT_METHODS).map((method) => {
-    const found = byPaymentAgg.find((r) => r._id === method);
+  const byPaymentMode = Object.values(PAYMENT_MODES).map((mode) => {
+    const found = byModeAgg.find((r) => r._id === mode);
     return {
-      paymentMethod: method,
+      paymentMode: mode,
       count: found ? found.count : 0,
       totalAmount: found ? found.totalAmount : 0,
     };
   });
 
-  // 4. Totals (snapshot - not date filtered): branches, employees, customers
-  const [totalBranches, totalEmployees, totalCustomers] = await Promise.all([
+  return { byPaymentMethod, byPaymentMode };
+}
+
+async function getTopProducts(match) {
+  const agg = await Booking.aggregate([
+    { $match: match },
+    { $unwind: '$items' },
+    {
+      $group: {
+        _id: '$items.productId',
+        productName: { $first: '$items.productName' },
+        quantity: { $sum: '$items.quantity' },
+        revenue: { $sum: '$items.lineTotal' },
+      },
+    },
+    { $sort: { revenue: -1 } },
+    { $limit: 10 },
+    {
+      $project: {
+        _id: 0,
+        productId: '$_id',
+        productName: 1,
+        quantity: 1,
+        revenue: 1,
+      },
+    },
+  ]);
+
+  return agg;
+}
+
+async function getDashboardData(startDate, endDate) {
+  const { start, end } = normalizeDateRange(startDate, endDate);
+  const match = { date: { $gte: start, $lte: end } };
+
+  const [summary, paymentBreakdown, byBranchAgg, topProducts, totalBranches, totalEmployees, totalCustomers] = await Promise.all([
+    getSummary(match),
+    getPaymentBreakdown(match),
+    Booking.aggregate([
+      { $match: match },
+      {
+        $group: {
+          _id: '$branchId',
+          bookingCount: { $sum: 1 },
+          revenue: { $sum: '$payment.totalAmount' },
+        },
+      },
+      { $sort: { revenue: -1 } },
+      {
+        $lookup: {
+          from: 'branches',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'branch',
+        },
+      },
+      { $unwind: { path: '$branch', preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          _id: 0,
+          branchId: '$_id',
+          branchName: '$branch.name',
+          branchNumber: '$branch.branchNumber',
+          employeeCount: '$branch.employeeCount',
+          bookingCount: 1,
+          revenue: 1,
+        },
+      },
+    ]),
+    getTopProducts(match),
     Branch.countDocuments(),
     Employee.countDocuments(),
     User.countDocuments(),
@@ -129,14 +186,18 @@ async function getDashboardData(startDate, endDate) {
       startDate: start.toISOString().split('T')[0],
       endDate: end.toISOString().split('T')[0],
     },
-    summary: {
-      totalBookings,
-      totalRevenue,
-      uniqueCustomersInRange: uniqueCustomersCount,
-      averageOrderValue,
-    },
-    byBranch,
-    byPaymentMethod,
+    summary,
+    byBranch: byBranchAgg.map((row) => ({
+      branchId: row.branchId,
+      branchName: row.branchName || 'N/A',
+      branchNumber: row.branchNumber || 'N/A',
+      employeeCount: row.employeeCount ?? 0,
+      bookingCount: row.bookingCount,
+      revenue: row.revenue,
+    })),
+    byPaymentMethod: paymentBreakdown.byPaymentMethod,
+    byPaymentMode: paymentBreakdown.byPaymentMode,
+    topProducts,
     totals: {
       totalBranches,
       totalEmployees,
@@ -145,25 +206,11 @@ async function getDashboardData(startDate, endDate) {
   };
 }
 
-/**
- * Get branch-scoped dashboard data for an employee's assigned branch
- * @param {Date} startDate - Start of range (start of day)
- * @param {Date} endDate - End of range (end of day)
- * @param {ObjectId} branchId - Branch ID
- * @returns {Promise<Object>} Branch dashboard summary and breakdowns
- */
 async function getBranchDashboardData(startDate, endDate, branchId) {
   const branchObjectId = typeof branchId === 'string' ? new mongoose.Types.ObjectId(branchId) : branchId;
+  const { start, end } = normalizeDateRange(startDate, endDate);
+  const match = { branchId: branchObjectId, date: { $gte: start, $lte: end } };
 
-  const start = new Date(startDate);
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(endDate);
-  end.setHours(23, 59, 59, 999);
-
-  const matchDateRange = { $gte: start, $lte: end };
-  const matchBranchAndDate = { branchId: branchObjectId, date: matchDateRange };
-
-  // Branch info
   const branch = await Branch.findById(branchObjectId).lean();
   if (!branch) {
     const err = new Error('Branch not found');
@@ -171,79 +218,27 @@ async function getBranchDashboardData(startDate, endDate, branchId) {
     throw err;
   }
 
-  const branchInfo = {
-    branchId: branch._id,
-    branchName: branch.name,
-    branchNumber: branch.branchNumber,
-    employeeCount: branch.employeeCount ?? 0,
-  };
-
-  // Summary for this branch in date range
-  const summaryAgg = await Booking.aggregate([
-    { $match: matchBranchAndDate },
-    {
-      $group: {
-        _id: null,
-        totalBookings: { $sum: 1 },
-        totalRevenue: { $sum: '$amount' },
-        uniqueCustomers: { $addToSet: '$userId' },
-      },
-    },
-    {
-      $project: {
-        _id: 0,
-        totalBookings: 1,
-        totalRevenue: 1,
-        uniqueCustomersCount: { $size: '$uniqueCustomers' },
-      },
-    },
+  const [summary, paymentBreakdown, topProducts] = await Promise.all([
+    getSummary(match),
+    getPaymentBreakdown(match),
+    getTopProducts(match),
   ]);
-
-  const summary = summaryAgg[0] || {
-    totalBookings: 0,
-    totalRevenue: 0,
-    uniqueCustomersCount: 0,
-  };
-
-  const totalBookings = summary.totalBookings || 0;
-  const totalRevenue = summary.totalRevenue || 0;
-  const uniqueCustomersCount = summary.uniqueCustomersCount || 0;
-  const averageOrderValue = totalBookings > 0 ? Math.round((totalRevenue / totalBookings) * 100) / 100 : 0;
-
-  // By payment method for this branch
-  const byPaymentAgg = await Booking.aggregate([
-    { $match: matchBranchAndDate },
-    {
-      $group: {
-        _id: '$paymentMethod',
-        count: { $sum: 1 },
-        totalAmount: { $sum: '$amount' },
-      },
-    },
-  ]);
-
-  const byPaymentMethod = Object.values(PAYMENT_METHODS).map((method) => {
-    const found = byPaymentAgg.find((r) => r._id === method);
-    return {
-      paymentMethod: method,
-      count: found ? found.count : 0,
-      totalAmount: found ? found.totalAmount : 0,
-    };
-  });
 
   return {
     dateRange: {
       startDate: start.toISOString().split('T')[0],
       endDate: end.toISOString().split('T')[0],
     },
-    branchInfo,
-    summary: {
-      totalBookings,
-      totalRevenue,
-      uniqueCustomersInRange: uniqueCustomersCount,
-      averageOrderValue,
+    branchInfo: {
+      branchId: branch._id,
+      branchName: branch.name,
+      branchNumber: branch.branchNumber,
+      employeeCount: branch.employeeCount ?? 0,
     },
-    byPaymentMethod,
+    summary,
+    byPaymentMethod: paymentBreakdown.byPaymentMethod,
+    byPaymentMode: paymentBreakdown.byPaymentMode,
+    topProducts,
   };
 }
 

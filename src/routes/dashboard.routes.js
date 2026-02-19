@@ -7,7 +7,7 @@ router.use(authenticateToken);
 
 /**
  * @route   GET /api/dashboard
- * @desc    Get dashboard data for date range. Admin: full dashboard; Employee: branch dashboard.
+ * @desc    Get dashboard data for date range. Includes payment split and top products.
  * @access  Private (Admin or Employee)
  */
 router.get('/', dashboardController.getDashboard);

@@ -6,7 +6,7 @@ const {
   badRequestResponse,
   notFoundResponse,
 } = require('../utils/response');
-const { MESSAGES, ROLES, PAYMENT_METHODS } = require('../config/constants');
+const { MESSAGES, ROLES } = require('../config/constants');
 
 class BookingController {
   /**
@@ -19,27 +19,27 @@ class BookingController {
         phone,
         email,
         fullName,
-        amount,
         size,
         artistName,
-        paymentMethod,
         branchId,
+        items,
+        payment,
       } = req.body;
 
       // Validation (employeeId = creator, set from token)
-      if (!phone || !fullName || !amount || size === undefined || size === null || !artistName || !paymentMethod || !branchId) {
+      if (!phone || !fullName || !artistName || !branchId) {
         return badRequestResponse(
           res,
-          'All required fields must be provided (phone, fullName, amount, size, artistName, paymentMethod, branchId)'
+          'Required fields: phone, fullName, artistName, branchId'
         );
       }
 
-      // Validate payment method
-      if (!Object.values(PAYMENT_METHODS).includes(paymentMethod)) {
-        return badRequestResponse(
-          res,
-          `Payment method must be either ${PAYMENT_METHODS.CASH} or ${PAYMENT_METHODS.UPI}`
-        );
+      if (!Array.isArray(items) || items.length === 0) {
+        return badRequestResponse(res, MESSAGES.INVALID_BOOKING_ITEMS);
+      }
+
+      if (!payment || typeof payment !== 'object') {
+        return badRequestResponse(res, MESSAGES.INVALID_PAYMENT_BREAKDOWN);
       }
 
       // Create booking (employeeId = creator id from token - admin or employee)
@@ -47,11 +47,11 @@ class BookingController {
         phone,
         email,
         fullName,
-        amount,
         size,
         artistName,
-        paymentMethod,
         branchId,
+        items,
+        payment,
         employeeId: req.user.id,
       });
 
@@ -59,6 +59,17 @@ class BookingController {
     } catch (error) {
       if (error.message === 'Branch not found') {
         return notFoundResponse(res, 'Branch not found');
+      }
+      if (
+        error.message === 'At least one booking item is required' ||
+        error.message.includes('item') ||
+        error.message.includes('product') ||
+        error.message.includes('quantity')
+      ) {
+        return badRequestResponse(res, error.message);
+      }
+      if (error.message.includes('Payment') || error.message.includes('payment')) {
+        return badRequestResponse(res, error.message);
       }
       next(error);
     }

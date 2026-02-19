@@ -1,5 +1,6 @@
 const cron = require('node-cron');
 const Booking = require('../models/booking.model');
+const Product = require('../models/product.model');
 const settingsService = require('../services/settings.service');
 const whatsappService = require('../services/whatsapp.service');
 
@@ -22,9 +23,19 @@ async function runReminderJob() {
     cutoff.setDate(cutoff.getDate() - days);
     cutoff.setHours(0, 0, 0, 0);
 
+    const defaultProduct = await Product.findOne({ isDefault: true }).lean();
+    if (!defaultProduct) {
+      console.log('⏰ Reminder cron: default Tattoo product not found; skipping');
+      return;
+    }
+
     const bookings = await Booking.find({
       date: { $lte: cutoff },
       reminderSentAt: null,
+      $or: [
+        { 'items.productId': defaultProduct._id },
+        { 'items.productName': defaultProduct.name },
+      ],
     })
       .populate('userId', 'fullName phone')
       .lean();

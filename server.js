@@ -5,6 +5,7 @@ const cors = require('cors');
 const connectDB = require('./src/config/database');
 const seedAdmin = require('./src/scripts/seedAdmin');
 const settingsService = require('./src/services/settings.service');
+const productService = require('./src/services/product.service');
 const { errorHandler, notFoundHandler } = require('./src/middlewares/error.middleware');
 const reminderCron = require('./src/jobs/reminderCron');
 
@@ -17,6 +18,7 @@ const userRoutes = require('./src/routes/user.routes');
 const dashboardRoutes = require('./src/routes/dashboard.routes');
 const settingsRoutes = require('./src/routes/settings.routes');
 const marketingRoutes = require('./src/routes/marketing.routes');
+const productRoutes = require('./src/routes/product.routes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -93,6 +95,7 @@ app.get('/', (req, res) => {
         dashboard: '/api/dashboard',
         settings: '/api/settings',
         marketing: '/api/marketing',
+        products: '/api/products',
       }
     }
   });
@@ -107,6 +110,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/marketing', marketingRoutes);
+app.use('/api/products', productRoutes);
 
 // 404 handler - must be after all routes
 app.use(notFoundHandler);
@@ -124,6 +128,8 @@ const startServer = async () => {
     await seedAdmin();
     // Seed default settings if none exist
     await settingsService.seedSettings();
+    // Seed default Tattoo product if none exists
+    await productService.seedDefaultProduct();
 
     // Start reminder cron (every 12 hours)
     reminderCron.start();

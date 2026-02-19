@@ -1,9 +1,15 @@
 const Booking = require('../models/booking.model');
 const userService = require('./user.service');
 const branchService = require('./branch.service');
-const employeeService = require('./employee.service');
+const productService = require('./product.service');
 const whatsappService = require('./whatsapp.service');
 const settingsService = require('./settings.service');
+const { PAYMENT_MODES, PAYMENT_METHODS } = require('../config/constants');
+
+function toNumber(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : NaN;
+}
 
 class BookingService {
   /**
@@ -16,71 +22,66 @@ class BookingService {
       phone,
       email,
       fullName,
-      amount,
       size,
       artistName,
-      paymentMethod,
       branchId,
       employeeId,
+      items,
+      payment,
     } = bookingData;
 
-    // Verify branch exists
     const branch = await branchService.findById(branchId);
     if (!branch) {
       throw new Error('Branch not found');
     }
 
-    // employeeId = creator id (admin or employee), no ref validation
+    const normalizedItems = await this.normalizeBookingItems(items);
+    const itemTotal = normalizedItems.reduce((sum, item) => sum + item.lineTotal, 0);
+    const normalizedPayment = this.normalizePayment(payment, itemTotal);
 
-    // Find or create user by phone
     let user = await userService.findByPhone(phone);
-
     if (user) {
-      // User exists - update email if provided and different
       if (email && email !== user.email) {
         await userService.updateUserEmail(user._id, email);
       }
-      // Update user stats (increment orders and amount)
-      await userService.updateUserStats(user._id, amount);
+      await userService.updateUserStats(user._id, normalizedPayment.totalAmount);
     } else {
-      // User doesn't exist - create new user
       user = await userService.createUser({
         fullName,
         phone,
         email,
       });
-      // Update stats for first order
-      await userService.updateUserStats(user._id, amount);
+      await userService.updateUserStats(user._id, normalizedPayment.totalAmount);
     }
 
-    // Create booking (employeeId = creator id - admin or employee from token)
     const booking = new Booking({
       phone,
       email,
       fullName,
-      amount,
-      size,
+      size: size !== undefined && size !== null ? Number(size) : undefined,
       artistName,
-      paymentMethod,
       branchId,
       employeeId,
       userId: user._id,
+      items: normalizedItems,
+      payment: normalizedPayment,
       date: new Date(),
     });
 
     const savedBooking = await booking.save();
 
-    // Send WhatsApp invoice to customer and optionally to self (don't fail booking if this fails)
     try {
       const bookingWithBranch = await Booking.findById(savedBooking._id)
-        .populate('branchId', 'name branchNumber');
+        .populate('branchId', 'name branchNumber')
+        .lean();
       const settings = await settingsService.getSettings();
+
       const payload = {
         bookingNumber: bookingWithBranch.bookingNumber,
         fullName: bookingWithBranch.fullName,
-        amount: bookingWithBranch.amount,
+        totalAmount: bookingWithBranch.payment.totalAmount,
         size: bookingWithBranch.size,
-        paymentMethod: bookingWithBranch.paymentMethod,
+        payment: bookingWithBranch.payment,
         artistName: bookingWithBranch.artistName,
         date: bookingWithBranch.date,
         branchId: bookingWithBranch.branchId,
@@ -100,6 +101,79 @@ class BookingService {
     }
 
     return savedBooking;
+  }
+
+  async normalizeBookingItems(items) {
+    if (!Array.isArray(items) || items.length === 0) {
+      throw new Error('At least one booking item is required');
+    }
+
+    const normalized = [];
+    for (const row of items) {
+      if (!row || !row.productId) {
+        throw new Error('Each item must include productId');
+      }
+
+      const product = await productService.findById(row.productId);
+      if (!product || !product.isActive) {
+        throw new Error('Invalid or inactive product in booking items');
+      }
+
+      const quantity = toNumber(row.quantity);
+      if (!Number.isInteger(quantity) || quantity < 1) {
+        throw new Error('quantity must be an integer >= 1');
+      }
+
+      let unitPrice;
+      if (product.isDefault) {
+        unitPrice = toNumber(row.unitPrice);
+        if (Number.isNaN(unitPrice) || unitPrice < 0) {
+          throw new Error('Default Tattoo product requires unitPrice >= 0');
+        }
+      } else {
+        unitPrice = toNumber(product.basePrice);
+      }
+
+      normalized.push({
+        productId: product._id,
+        productName: product.name,
+        quantity,
+        unitPrice,
+        lineTotal: Math.round(unitPrice * quantity * 100) / 100,
+      });
+    }
+
+    return normalized;
+  }
+
+  normalizePayment(payment, itemTotal) {
+    if (!payment || typeof payment !== 'object') {
+      throw new Error('payment is required');
+    }
+
+    const cashAmount = toNumber(payment.cashAmount ?? 0);
+    const upiAmount = toNumber(payment.upiAmount ?? 0);
+
+    if (Number.isNaN(cashAmount) || Number.isNaN(upiAmount)) {
+      throw new Error('cashAmount and upiAmount must be valid numbers');
+    }
+    if (cashAmount < 0 || upiAmount < 0) {
+      throw new Error('cashAmount and upiAmount cannot be negative');
+    }
+    if (cashAmount === 0 && upiAmount === 0) {
+      throw new Error('At least one payment amount must be greater than 0');
+    }
+
+    const totalAmount = Math.round((cashAmount + upiAmount) * 100) / 100;
+    if (Math.abs(totalAmount - itemTotal) > 0.001) {
+      throw new Error('Payment total must match items total');
+    }
+
+    let paymentMode = PAYMENT_MODES.SPLIT;
+    if (cashAmount > 0 && upiAmount === 0) paymentMode = PAYMENT_MODES.CASH;
+    if (upiAmount > 0 && cashAmount === 0) paymentMode = PAYMENT_MODES.UPI;
+
+    return { cashAmount, upiAmount, totalAmount, paymentMode };
   }
 
   /**
@@ -124,63 +198,54 @@ class BookingService {
       Booking.find(query)
         .populate('branchId', 'name branchNumber')
         .populate('userId', 'fullName phone email')
+        .populate('items.productId', 'name isDefault isActive')
         .sort({ date: -1 })
         .skip(skip)
         .limit(safeLimit)
         .lean(),
       Booking.countDocuments(query),
     ]);
-    return { bookings, total };
+
+    const enriched = bookings.map((booking) => ({
+      ...booking,
+      amount: booking.payment?.totalAmount ?? 0,
+      paymentMethod:
+        booking.payment?.paymentMode === PAYMENT_MODES.CASH
+          ? PAYMENT_METHODS.CASH
+          : booking.payment?.paymentMode === PAYMENT_MODES.UPI
+            ? PAYMENT_METHODS.UPI
+            : `${PAYMENT_METHODS.CASH} + ${PAYMENT_METHODS.UPI}`,
+      reminderSent: !!booking.reminderSentAt,
+    }));
+
+    return { bookings: enriched, total };
   }
 
-  /**
-   * Get bookings by branch with optional date filter and pagination
-   * @param {String} branchId - Branch ID
-   * @param {Object} filters - { startDate?, endDate?, page?, limit? }
-   * @returns {Promise<{ bookings: Array, total: Number }>}
-   */
   async getBookingsByBranch(branchId, filters = {}) {
     return this.getAllBookings({ ...filters, branchId });
   }
 
-  /**
-   * Get bookings by employee
-   * @param {String} employeeId - Employee ID
-   * @returns {Promise<Array>} Array of booking documents
-   */
   async getBookingsByEmployee(employeeId) {
-    return await Booking.find({ employeeId })
+    return Booking.find({ employeeId })
       .populate('branchId', 'name branchNumber')
       .populate('userId', 'fullName phone email')
+      .populate('items.productId', 'name isDefault isActive')
       .sort({ date: -1 });
   }
 
-  /**
-   * Find booking by ID
-   * @param {String} id - Booking ID
-   * @returns {Promise<Object>} Booking document
-   */
   async findById(id) {
-    return await Booking.findById(id)
+    return Booking.findById(id)
       .populate('branchId', 'name branchNumber')
-      .populate('userId', 'fullName phone email');
+      .populate('userId', 'fullName phone email')
+      .populate('items.productId', 'name isDefault isActive');
   }
 
-  /**
-   * Count bookings
-   * @returns {Promise<Number>} Number of bookings
-   */
   async countBookings() {
-    return await Booking.countDocuments();
+    return Booking.countDocuments();
   }
 
-  /**
-   * Count bookings by branch
-   * @param {String} branchId - Branch ID
-   * @returns {Promise<Number>} Number of bookings
-   */
   async countBookingsByBranch(branchId) {
-    return await Booking.countDocuments({ branchId });
+    return Booking.countDocuments({ branchId });
   }
 }
 

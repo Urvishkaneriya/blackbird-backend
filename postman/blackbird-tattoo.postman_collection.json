@@ -77,19 +77,39 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/health",
-          "host": ["{{baseUrl}}"],
-          "path": ["health"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
         },
         "description": "Check if server and database are running properly"
       },
       "response": [
         {
           "name": "Success",
-          "originalRequest": { "method": "GET", "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] } },
+          "originalRequest": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
           "status": "OK",
           "code": 200,
           "_postman_previewlanguage": "json",
-          "header": [ { "key": "Content-Type", "value": "application/json" } ],
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
           "body": "{\n  \"message\": \"Server is healthy\",\n  \"data\": {\n    \"database\": { \"status\": \"connected\", \"name\": \"blackbird\", \"host\": \"localhost\" },\n    \"server\": { \"uptime\": 123.45, \"environment\": \"development\", \"timestamp\": \"2026-01-19T10:00:00.000Z\" }\n  }\n}"
         }
       ]
@@ -143,19 +163,49 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
             },
             "description": "Login as admin. Token (with user id and role) is auto-saved. All other APIs use this token - never pass user id in body or query."
           },
           "response": [
             {
               "name": "Success",
-              "originalRequest": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "raw": "{\"email\": \"admin@blackbird.com\", \"password\": \"admin123456\"}" }, "url": { "raw": "{{baseUrl}}/api/auth/login", "path": ["api", "auth", "login"] } },
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "raw": "{\"email\": \"admin@blackbird.com\", \"password\": \"admin123456\"}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/auth/login",
+                  "path": [
+                    "api",
+                    "auth",
+                    "login"
+                  ]
+                }
+              },
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\\n  \"message\": \"Login successful\",\\n  \"data\": {\\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\\n    \"user\": { \"id\": \"678a1234567890abcdef\", \"name\": \"Admin User\", \"email\": \"admin@blackbird.com\", \"role\": \"admin\" }\\n  }\\n}"
             }
           ]
@@ -203,8 +253,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
             },
             "description": "Login as employee. Token (with user id and role) is auto-saved. All other APIs use this token - never pass user id in body or query."
           },
@@ -214,7 +270,12 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\"message\": \"Login successful\", \"data\": {\"token\": \"eyJ...\", \"user\": {\"id\": \"678abc\", \"name\": \"John Doe\", \"email\": \"john@example.com\", \"role\": \"employee\", \"employeeNumber\": \"EMP0001\"}}}"
             }
           ]
@@ -254,8 +315,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/auth/me",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "me"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
             },
             "description": "Get current user's full info. User id and role come from token - no body/query needed."
           },
@@ -265,7 +332,12 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\"message\": \"User information fetched successfully\", \"data\": {\"_id\": \"678a123\", \"name\": \"Admin User\", \"email\": \"admin@blackbird.com\", \"role\": \"admin\", \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T10:00:00.000Z\"}}"
             }
           ]
@@ -317,8 +389,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/branches",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "branches"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "branches"
+              ]
             },
             "description": "Create a new branch (Admin only)"
           },
@@ -328,7 +405,12 @@
               "status": "Created",
               "code": 201,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\"message\": \"Branch created successfully\", \"data\": {\"_id\": \"678b001\", \"name\": \"Downtown Branch\", \"address\": \"123 Main Street\", \"branchNumber\": \"BRANCH0001\", \"employeeCount\": 0, \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T10:00:00.000Z\"}}"
             }
           ]
@@ -361,8 +443,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/branches",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "branches"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "branches"
+              ]
             },
             "description": "Get all branches (Admin only)"
           },
@@ -372,7 +459,12 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\"message\": \"Branches fetched successfully\", \"data\": {\"count\": 1, \"branches\": [{\"_id\": \"678b001\", \"name\": \"Downtown Branch\", \"address\": \"123 Main Street\", \"branchNumber\": \"BRANCH0001\", \"employeeCount\": 0}]}}"
             }
           ]
@@ -412,8 +504,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/branches/{{lastCreatedBranchId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "branches", "{{lastCreatedBranchId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "branches",
+                "{{lastCreatedBranchId}}"
+              ]
             },
             "description": "Update branch details (Admin only). Note: employeeCount and branchNumber cannot be updated."
           },
@@ -423,10 +521,152 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\"message\": \"Branch updated successfully\", \"data\": {\"_id\": \"678b001\", \"name\": \"Downtown Branch - Updated\", \"address\": \"123 Main Street, Updated\", \"branchNumber\": \"BRANCH0001\", \"employeeCount\": 0}}"
             }
           ]
+        }
+      ]
+    },
+    {
+      "name": "Product Management",
+      "item": [
+        {
+          "name": "Get Products",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const jsonData = pm.response.json();",
+                  "pm.expect(jsonData.data).to.have.property('products');",
+                  "const defaultProduct = jsonData.data.products.find(p => p.isDefault === true);",
+                  "if (defaultProduct) pm.environment.set('defaultProductId', defaultProduct._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ]
+            },
+            "description": "Get products. Stores default Tattoo product id into defaultProductId env var."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+                  "const jsonData = pm.response.json();",
+                  "pm.environment.set('lastCreatedProductId', jsonData.data._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Aftercare Kit\",\n  \"basePrice\": 400,\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ]
+            },
+            "description": "Create admin product with fixed catalog price."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Aftercare Kit Premium\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{lastCreatedProductId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "{{lastCreatedProductId}}"
+              ]
+            },
+            "description": "Update product name and active state. Non-default product basePrice is immutable."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Product Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{lastCreatedProductId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "{{lastCreatedProductId}}",
+                "status"
+              ]
+            },
+            "description": "Quick enable/disable toggle."
+          },
+          "response": []
         }
       ]
     },
@@ -474,8 +714,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/employees",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "employees"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees"
+              ]
             },
             "description": "Create a new employee (Admin only)"
           },
@@ -485,7 +730,12 @@
               "status": "Created",
               "code": 201,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\"message\": \"Employee created successfully\", \"data\": {\"_id\": \"678e001\", \"uniqueId\": \"550e8400-e29b-41d4-a716-446655440000\", \"fullName\": \"John Doe\", \"email\": \"john.doe@example.com\", \"phoneNumber\": \"1234567890\", \"employeeNumber\": \"EMP0001\", \"branchId\": \"678b001\", \"role\": \"employee\", \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T10:00:00.000Z\"}}"
             }
           ]
@@ -521,12 +771,28 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/employees?page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "employees"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees"
+              ],
               "query": [
-                { "key": "branchId", "value": "", "disabled": true, "description": "Filter by branch ID (optional)" },
-                { "key": "page", "value": "1" },
-                { "key": "limit", "value": "10" }
+                {
+                  "key": "branchId",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Filter by branch ID (optional)"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
               ]
             },
             "description": "Get all employees (Admin only). Query: branchId (optional), page (default 1), limit (default 10, max 100). Response includes count, total, page, limit, employees."
@@ -537,7 +803,12 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\"message\": \"Employees fetched successfully\", \"data\": {\"count\": 1, \"total\": 1, \"page\": 1, \"limit\": 10, \"employees\": [{\"_id\": \"678e001\", \"fullName\": \"John Doe\", \"email\": \"john.doe@example.com\", \"phoneNumber\": \"1234567890\", \"employeeNumber\": \"EMP0001\", \"branchId\": \"678b001\", \"role\": \"employee\"}]}}"
             }
           ]
@@ -568,8 +839,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/employees/{{lastCreatedEmployeeId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "employees", "{{lastCreatedEmployeeId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "{{lastCreatedEmployeeId}}"
+              ]
             },
             "description": "Get single employee by ID (Admin only)"
           },
@@ -579,7 +856,12 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\"message\": \"Employee fetched successfully\", \"data\": {\"_id\": \"678e001\", \"fullName\": \"John Doe\", \"email\": \"john.doe@example.com\", \"phoneNumber\": \"1234567890\", \"employeeNumber\": \"EMP0001\", \"branchId\": \"678b001\", \"role\": \"employee\"}}"
             }
           ]
@@ -619,8 +901,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/employees/{{lastCreatedEmployeeId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "employees", "{{lastCreatedEmployeeId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "{{lastCreatedEmployeeId}}"
+              ]
             },
             "description": "Update employee details (Admin only)"
           },
@@ -630,7 +918,12 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\"message\": \"Employee updated successfully\", \"data\": {\"_id\": \"678e001\", \"fullName\": \"John Doe Updated\", \"email\": \"john.doe@example.com\", \"phoneNumber\": \"9999999999\", \"employeeNumber\": \"EMP0001\", \"branchId\": \"678b001\", \"role\": \"employee\"}}"
             }
           ]
@@ -660,8 +953,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/employees/search?q=john",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "employees", "search"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "search"
+              ],
               "query": [
                 {
                   "key": "q",
@@ -677,7 +976,12 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\"message\": \"Employees fetched successfully\", \"data\": {\"count\": 1, \"employees\": [{\"_id\": \"678e001\", \"fullName\": \"John Doe\", \"email\": \"john.doe@example.com\", \"employeeNumber\": \"EMP0001\"}]}}"
             }
           ]
@@ -708,8 +1012,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/employees/{{lastCreatedEmployeeId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "employees", "{{lastCreatedEmployeeId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "{{lastCreatedEmployeeId}}"
+              ]
             },
             "description": "Delete an employee (Admin only)"
           },
@@ -719,7 +1029,12 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\"message\": \"Employee deleted successfully\", \"data\": {\"deletedEmployee\": {\"id\": \"678e001\", \"fullName\": \"John Doe\", \"email\": \"john.doe@example.com\", \"employeeNumber\": \"EMP0001\"}}}"
             }
           ]
@@ -740,20 +1055,17 @@
                   "    pm.response.to.have.status(201);",
                   "});",
                   "",
-                  "pm.test('Booking created successfully', function () {",
+                  "pm.test('Booking created with items and payment breakdown', function () {",
                   "    const jsonData = pm.response.json();",
                   "    pm.expect(jsonData.message).to.eql('Booking created successfully');",
                   "    pm.expect(jsonData.data).to.have.property('_id');",
                   "    pm.expect(jsonData.data).to.have.property('bookingNumber');",
-                  "    pm.expect(jsonData.data).to.have.property('userId');",
-                  "    pm.expect(jsonData.data).to.have.property('size');",
-                  "    ",
-                  "    // Save booking ID for other tests",
+                  "    pm.expect(jsonData.data).to.have.property('items');",
+                  "    pm.expect(jsonData.data.items).to.be.an('array').that.is.not.empty;",
+                  "    pm.expect(jsonData.data).to.have.property('payment');",
+                  "    pm.expect(jsonData.data.payment).to.have.property('totalAmount');",
+                  "    pm.expect(jsonData.data.payment).to.have.property('paymentMode');",
                   "    pm.environment.set('lastCreatedBookingId', jsonData.data._id);",
-                  "    ",
-                  "    console.log('✅ Booking created:', jsonData.data.bookingNumber);",
-                  "    console.log('Customer phone:', jsonData.data.phone);",
-                  "    console.log('Size:', jsonData.data.size);",
                   "});"
                 ]
               }
@@ -769,14 +1081,19 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone\": \"{{testCustomerPhone}}\",\n  \"email\": \"customer@example.com\",\n  \"fullName\": \"Jane Customer\",\n  \"amount\": 5000,\n  \"size\": 5,\n  \"artistName\": \"Mike Tattoo Artist\",\n  \"paymentMethod\": \"CASH\",\n  \"branchId\": \"{{lastCreatedBranchId}}\"\n}"
+              "raw": "{\n  \"phone\": \"{{testCustomerPhone}}\",\n  \"email\": \"customer@example.com\",\n  \"fullName\": \"Jane Customer\",\n  \"artistName\": \"Mike Tattoo Artist\",\n  \"size\": 5,\n  \"branchId\": \"{{lastCreatedBranchId}}\",\n  \"items\": [\n    {\n      \"productId\": \"{{defaultProductId}}\",\n      \"quantity\": 1,\n      \"unitPrice\": 300\n    },\n    {\n      \"productId\": \"{{lastCreatedProductId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"payment\": {\n    \"cashAmount\": 300,\n    \"upiAmount\": 400\n  }\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/bookings",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "bookings"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "bookings"
+              ]
             },
-            "description": "Create a new booking/invoice. Required: phone, fullName, amount, size, artistName, paymentMethod (CASH or UPI), branchId. Optional: email. employeeId (creator) is set from the authenticated user - admin or employee id from token."
+            "description": "Create a booking/invoice with product line items and split/single payment. Required: phone, fullName, artistName, branchId, items[], payment{cashAmount, upiAmount}. Optional: email, size. Default Tattoo product unitPrice is editable per booking; admin-created product price is fixed from catalog."
           },
           "response": [
             {
@@ -784,8 +1101,13 @@
               "status": "Created",
               "code": 201,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
-              "body": "{\"message\": \"Booking created successfully\", \"data\": {\"_id\": \"678bk001\", \"bookingNumber\": \"INV0001\", \"phone\": \"9876543210\", \"fullName\": \"Jane Customer\", \"amount\": 5000, \"size\": 5, \"artistName\": \"Mike Tattoo Artist\", \"paymentMethod\": \"CASH\", \"branchId\": \"678b001\", \"employeeId\": \"678a123\", \"userId\": \"678u001\", \"date\": \"2026-01-19T10:00:00.000Z\", \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T10:00:00.000Z\"}}"
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\"message\":\"Booking created successfully\",\"data\":{\"_id\":\"678bk001\",\"bookingNumber\":\"INV0001\",\"phone\":\"9876543210\",\"fullName\":\"Jane Customer\",\"artistName\":\"Mike Tattoo Artist\",\"size\":5,\"branchId\":\"678b001\",\"employeeId\":\"678a123\",\"userId\":\"678u001\",\"items\":[{\"productId\":\"678p0001\",\"productName\":\"Tattoo\",\"quantity\":1,\"unitPrice\":300,\"lineTotal\":300},{\"productId\":\"678p0002\",\"productName\":\"Aftercare Kit\",\"quantity\":1,\"unitPrice\":400,\"lineTotal\":400}],\"payment\":{\"cashAmount\":300,\"upiAmount\":400,\"totalAmount\":700,\"paymentMode\":\"SPLIT\"},\"amount\":700,\"paymentMethod\":\"CASH + UPI\",\"date\":\"2026-02-13T10:00:00.000Z\",\"createdAt\":\"2026-02-13T10:00:00.000Z\",\"updatedAt\":\"2026-02-13T10:00:00.000Z\"}}"
             }
           ]
         },
@@ -802,17 +1124,12 @@
                   "",
                   "pm.test('Bookings list returned', function () {",
                   "    const jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.data).to.have.property('count');",
                   "    pm.expect(jsonData.data).to.have.property('bookings');",
                   "    pm.expect(jsonData.data.bookings).to.be.an('array');",
-                  "    ",
                   "    if (jsonData.data.bookings.length > 0) {",
-                  "        pm.expect(jsonData.data.bookings[0]).to.have.property('size');",
+                  "        pm.expect(jsonData.data.bookings[0]).to.have.property('items');",
+                  "        pm.expect(jsonData.data.bookings[0]).to.have.property('payment');",
                   "    }",
-                  "    pm.expect(jsonData.data).to.have.property('total');",
-                  "    pm.expect(jsonData.data).to.have.property('page');",
-                  "    pm.expect(jsonData.data).to.have.property('limit');",
-                  "    console.log('✅ Found', jsonData.data.count, 'of', jsonData.data.total, 'bookings');",
                   "});"
                 ]
               }
@@ -823,17 +1140,43 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/bookings?page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "bookings"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "bookings"
+              ],
               "query": [
-                { "key": "branchId", "value": "", "disabled": true, "description": "Filter by branch (Admin only, optional)" },
-                { "key": "startDate", "value": "2026-01-01", "disabled": true, "description": "YYYY-MM-DD" },
-                { "key": "endDate", "value": "2026-01-31", "disabled": true, "description": "YYYY-MM-DD" },
-                { "key": "page", "value": "1" },
-                { "key": "limit", "value": "10" }
+                {
+                  "key": "branchId",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Filter by branch (Admin only, optional)"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2026-01-01",
+                  "disabled": true,
+                  "description": "YYYY-MM-DD"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2026-01-31",
+                  "disabled": true,
+                  "description": "YYYY-MM-DD"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
               ]
             },
-            "description": "Get bookings. Admin: all (optional branchId). Employee: their branch only. Query: branchId, startDate, endDate (YYYY-MM-DD), page, limit (default 10, max 100). Response: count, total, page, limit, bookings."
+            "description": "Get bookings. Admin: all (optional branchId). Employee: own branch only. Supports startDate/endDate (YYYY-MM-DD), page, limit. Booking data includes items[] and payment breakdown (cashAmount/upiAmount/totalAmount/paymentMode)."
           },
           "response": [
             {
@@ -841,8 +1184,13 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
-              "body": "{\"message\": \"Bookings fetched successfully\", \"data\": {\"count\": 1, \"total\": 1, \"page\": 1, \"limit\": 10, \"bookings\": [{\"_id\": \"678bk001\", \"bookingNumber\": \"INV0001\", \"phone\": \"9876543210\", \"fullName\": \"Jane Customer\", \"amount\": 5000, \"size\": 5, \"artistName\": \"Mike Tattoo Artist\", \"paymentMethod\": \"CASH\", \"branchId\": {\"name\": \"Downtown Branch\", \"branchNumber\": \"BRANCH0001\"}, \"userId\": {\"fullName\": \"Jane Customer\", \"phone\": \"9876543210\", \"email\": \"customer@example.com\"}, \"date\": \"2026-01-19T10:00:00.000Z\", \"reminderSentAt\": null}]}}"
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\"message\":\"Bookings fetched successfully\",\"data\":{\"count\":1,\"total\":1,\"page\":1,\"limit\":10,\"bookings\":[{\"_id\":\"678bk001\",\"bookingNumber\":\"INV0001\",\"phone\":\"9876543210\",\"fullName\":\"Jane Customer\",\"artistName\":\"Mike Tattoo Artist\",\"size\":5,\"items\":[{\"productId\":{\"_id\":\"678p0001\",\"name\":\"Tattoo\",\"isDefault\":true,\"isActive\":true},\"productName\":\"Tattoo\",\"quantity\":1,\"unitPrice\":300,\"lineTotal\":300},{\"productId\":{\"_id\":\"678p0002\",\"name\":\"Aftercare Kit\",\"isDefault\":false,\"isActive\":true},\"productName\":\"Aftercare Kit\",\"quantity\":1,\"unitPrice\":400,\"lineTotal\":400}],\"payment\":{\"cashAmount\":300,\"upiAmount\":400,\"totalAmount\":700,\"paymentMode\":\"SPLIT\"},\"amount\":700,\"paymentMethod\":\"CASH + UPI\",\"branchId\":{\"name\":\"Downtown Branch\",\"branchNumber\":\"BRANCH0001\"},\"userId\":{\"fullName\":\"Jane Customer\",\"phone\":\"9876543210\",\"email\":\"customer@example.com\"},\"date\":\"2026-02-13T10:00:00.000Z\",\"reminderSentAt\":null,\"reminderSent\":false}]}}"
             }
           ]
         }
@@ -881,12 +1229,28 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/users?page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "users"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ],
               "query": [
-                { "key": "branchId", "value": "", "disabled": true, "description": "Filter: users with booking at this branch (optional)" },
-                { "key": "page", "value": "1" },
-                { "key": "limit", "value": "10" }
+                {
+                  "key": "branchId",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Filter: users with booking at this branch (optional)"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
               ]
             },
             "description": "Get all customers (Admin only). Query: branchId (optional), page (default 1), limit (default 10, max 100). Response: count, total, page, limit, users."
@@ -897,7 +1261,12 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\"message\": \"Users fetched successfully\", \"data\": {\"count\": 1, \"total\": 1, \"page\": 1, \"limit\": 10, \"users\": [{\"_id\": \"678u001\", \"fullName\": \"Jane Customer\", \"phone\": \"9876543210\", \"email\": \"customer@example.com\", \"totalOrders\": 2, \"totalAmount\": 10000, \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T10:00:00.000Z\"}]}}"
             }
           ]
@@ -920,12 +1289,10 @@
                   "",
                   "pm.test('Dashboard data returned', function () {",
                   "    const jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.message).to.eql('Dashboard data fetched successfully');",
-                  "    pm.expect(jsonData.data).to.have.property('dateRange');",
                   "    pm.expect(jsonData.data).to.have.property('summary');",
                   "    pm.expect(jsonData.data).to.have.property('byPaymentMethod');",
-                  "    if (jsonData.data.byBranch) { pm.expect(jsonData.data).to.have.property('totals'); }",
-                  "    if (jsonData.data.branchInfo) { pm.expect(jsonData.data.branchInfo).to.have.property('branchName'); }",
+                  "    pm.expect(jsonData.data).to.have.property('byPaymentMode');",
+                  "    pm.expect(jsonData.data).to.have.property('topProducts');",
                   "});"
                 ]
               }
@@ -936,31 +1303,52 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/dashboard?startDate=2026-01-01&endDate=2026-01-31",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "dashboard"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "dashboard"
+              ],
               "query": [
-                { "key": "startDate", "value": "2026-01-01" },
-                { "key": "endDate", "value": "2026-01-31" }
+                {
+                  "key": "startDate",
+                  "value": "2026-01-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2026-01-31"
+                }
               ]
             },
-            "description": "Get dashboard for date range. Admin: full dashboard (summary, byBranch, byPaymentMethod, totals). Employee: branch dashboard for assigned branch (branchInfo, summary, byPaymentMethod). Query: startDate (YYYY-MM-DD), endDate (YYYY-MM-DD). Use Admin token for full dashboard; Employee token for branch dashboard."
+            "description": "Get dashboard for date range. Admin: summary + byBranch + byPaymentMethod + byPaymentMode + topProducts + totals. Employee: branchInfo + summary + byPaymentMethod + byPaymentMode + topProducts."
           },
           "response": [
             {
-              "name": "Admin – full dashboard",
+              "name": "Admin - full dashboard",
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
-              "body": "{\"message\": \"Dashboard data fetched successfully\", \"data\": {\"dateRange\": {\"startDate\": \"2026-01-01\", \"endDate\": \"2026-01-31\"}, \"summary\": {\"totalBookings\": 15, \"totalRevenue\": 75000, \"uniqueCustomersInRange\": 8, \"averageOrderValue\": 5000}, \"byBranch\": [{\"branchId\": \"678b001\", \"branchName\": \"Downtown Branch\", \"branchNumber\": \"BRANCH0001\", \"employeeCount\": 3, \"bookingCount\": 10, \"revenue\": 50000}, {\"branchId\": \"678b002\", \"branchName\": \"Uptown Branch\", \"branchNumber\": \"BRANCH0002\", \"employeeCount\": 2, \"bookingCount\": 5, \"revenue\": 25000}], \"byPaymentMethod\": [{\"paymentMethod\": \"CASH\", \"count\": 9, \"totalAmount\": 45000}, {\"paymentMethod\": \"UPI\", \"count\": 6, \"totalAmount\": 30000}], \"totals\": {\"totalBranches\": 2, \"totalEmployees\": 5, \"totalCustomers\": 25}}}"
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\"message\":\"Dashboard data fetched successfully\",\"data\":{\"dateRange\":{\"startDate\":\"2026-02-01\",\"endDate\":\"2026-02-13\"},\"summary\":{\"totalBookings\":15,\"totalRevenue\":75000,\"uniqueCustomersInRange\":8,\"averageOrderValue\":5000},\"byBranch\":[{\"branchId\":\"678b001\",\"branchName\":\"Downtown Branch\",\"branchNumber\":\"BRANCH0001\",\"employeeCount\":3,\"bookingCount\":10,\"revenue\":50000}],\"byPaymentMethod\":[{\"paymentMethod\":\"CASH\",\"count\":9,\"totalAmount\":38000},{\"paymentMethod\":\"UPI\",\"count\":8,\"totalAmount\":37000}],\"byPaymentMode\":[{\"paymentMode\":\"CASH\",\"count\":7,\"totalAmount\":30000},{\"paymentMode\":\"UPI\",\"count\":6,\"totalAmount\":32000},{\"paymentMode\":\"SPLIT\",\"count\":2,\"totalAmount\":13000}],\"topProducts\":[{\"productId\":\"678p0001\",\"productName\":\"Tattoo\",\"quantity\":12,\"revenue\":52000},{\"productId\":\"678p0002\",\"productName\":\"Aftercare Kit\",\"quantity\":9,\"revenue\":9000}],\"totals\":{\"totalBranches\":2,\"totalEmployees\":5,\"totalCustomers\":25}}}"
             },
             {
-              "name": "Employee – branch dashboard",
+              "name": "Employee - branch dashboard",
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
-              "body": "{\"message\": \"Dashboard data fetched successfully\", \"data\": {\"dateRange\": {\"startDate\": \"2026-01-01\", \"endDate\": \"2026-01-31\"}, \"branchInfo\": {\"branchId\": \"678b001\", \"branchName\": \"Downtown Branch\", \"branchNumber\": \"BRANCH0001\", \"employeeCount\": 3}, \"summary\": {\"totalBookings\": 10, \"totalRevenue\": 50000, \"uniqueCustomersInRange\": 6, \"averageOrderValue\": 5000}, \"byPaymentMethod\": [{\"paymentMethod\": \"CASH\", \"count\": 6, \"totalAmount\": 30000}, {\"paymentMethod\": \"UPI\", \"count\": 4, \"totalAmount\": 20000}]}}"
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\"message\":\"Dashboard data fetched successfully\",\"data\":{\"dateRange\":{\"startDate\":\"2026-02-01\",\"endDate\":\"2026-02-13\"},\"branchInfo\":{\"branchId\":\"678b001\",\"branchName\":\"Downtown Branch\",\"branchNumber\":\"BRANCH0001\",\"employeeCount\":3},\"summary\":{\"totalBookings\":10,\"totalRevenue\":50000,\"uniqueCustomersInRange\":6,\"averageOrderValue\":5000},\"byPaymentMethod\":[{\"paymentMethod\":\"CASH\",\"count\":6,\"totalAmount\":26000},{\"paymentMethod\":\"UPI\",\"count\":5,\"totalAmount\":24000}],\"byPaymentMode\":[{\"paymentMode\":\"CASH\",\"count\":4,\"totalAmount\":18000},{\"paymentMode\":\"UPI\",\"count\":4,\"totalAmount\":22000},{\"paymentMode\":\"SPLIT\",\"count\":2,\"totalAmount\":10000}],\"topProducts\":[{\"productId\":\"678p0001\",\"productName\":\"Tattoo\",\"quantity\":8,\"revenue\":36000}]}}"
             }
           ]
         }
@@ -992,7 +1380,16 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/api/settings", "host": ["{{baseUrl}}"], "path": ["api", "settings"] },
+            "url": {
+              "raw": "{{baseUrl}}/api/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "settings"
+              ]
+            },
             "description": "Get app settings (admin only). Returns whatsappEnabled, reminderEnabled, reminderTimeDays, selfInvoiceMessageEnabled."
           },
           "response": [
@@ -1001,7 +1398,12 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\"message\": \"Settings fetched successfully\", \"data\": {\"_id\": \"678s001\", \"whatsappEnabled\": true, \"reminderEnabled\": true, \"reminderTimeDays\": 60, \"selfInvoiceMessageEnabled\": true, \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T10:00:00.000Z\"}}"
             }
           ]
@@ -1025,9 +1427,26 @@
           ],
           "request": {
             "method": "PUT",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\"whatsappEnabled\": true, \"reminderEnabled\": true, \"reminderTimeDays\": 60, \"selfInvoiceMessageEnabled\": true}" },
-            "url": { "raw": "{{baseUrl}}/api/settings", "host": ["{{baseUrl}}"], "path": ["api", "settings"] },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"whatsappEnabled\": true, \"reminderEnabled\": true, \"reminderTimeDays\": 60, \"selfInvoiceMessageEnabled\": true}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "settings"
+              ]
+            },
             "description": "Update settings (admin only). Body: whatsappEnabled?, reminderEnabled?, reminderTimeDays? (min 1), selfInvoiceMessageEnabled?."
           },
           "response": [
@@ -1036,7 +1455,12 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\"message\": \"Settings updated successfully\", \"data\": {\"_id\": \"678s001\", \"whatsappEnabled\": true, \"reminderEnabled\": true, \"reminderTimeDays\": 60, \"selfInvoiceMessageEnabled\": true, \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T12:00:00.000Z\"}}"
             }
           ]
@@ -1068,12 +1492,27 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"WELCOME_DISCOUNT\",\n  \"displayName\": \"Welcome Discount Offer\",\n  \"channel\": \"whatsapp\",\n  \"whatsappTemplateName\": \"blackbird_welcome_discount\",\n  \"languageCode\": \"en\",\n  \"bodyExample\": \"Hello {{1}}, enjoy {{2}}% discount until {{3}}!\",\n  \"parameters\": [\n    {\n      \"key\": \"name\",\n      \"position\": 1,\n      \"type\": \"string\",\n      \"required\": true,\n      \"description\": \"Customer name\"\n    },\n    {\n      \"key\": \"percent\",\n      \"position\": 2,\n      \"type\": \"number\",\n      \"required\": true,\n      \"description\": \"Discount percentage\"\n    },\n    {\n      \"key\": \"days\",\n      \"position\": 3,\n      \"type\": \"number\",\n      \"required\": true,\n      \"description\": \"Days\"\n    }\n  ]\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/marketing/templates", "host": ["{{baseUrl}}"], "path": ["api", "marketing", "templates"] },
+            "url": {
+              "raw": "{{baseUrl}}/api/marketing/templates",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "marketing",
+                "templates"
+              ]
+            },
             "description": "Create a new marketing template (admin only). Required: name, displayName, whatsappTemplateName. Parameters: just define key, position, type, required, description. No need to mark static/user - that's decided when sending (admin can type value OR select enum from dropdown)."
           },
           "response": [
@@ -1082,7 +1521,12 @@
               "status": "Created",
               "code": 201,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\"message\": \"Marketing template created successfully\", \"data\": {\"_id\": \"tpl_abc123\", \"name\": \"WELCOME_DISCOUNT\", \"displayName\": \"Welcome Discount Offer\", \"channel\": \"whatsapp\", \"whatsappTemplateName\": \"blackbird_welcome_discount\", \"languageCode\": \"en\", \"bodyExample\": \"Hello {{1}}, enjoy {{2}}% discount until {{3}}!\", \"parameters\": [{\"key\": \"name\", \"position\": 1, \"type\": \"string\", \"required\": true, \"description\": \"Customer name\"}, {\"key\": \"percent\", \"position\": 2, \"type\": \"number\", \"required\": true, \"description\": \"Discount percentage\"}, {\"key\": \"days\", \"position\": 3, \"type\": \"number\", \"required\": true, \"description\": \"Days\"}], \"isActive\": true, \"createdBy\": {\"_id\": \"678a123\", \"name\": \"Admin\", \"email\": \"admin@example.com\"}, \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T10:00:00.000Z\"}}"
             }
           ]
@@ -1092,7 +1536,17 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/api/marketing/dynamic-fields", "host": ["{{baseUrl}}"], "path": ["api", "marketing", "dynamic-fields"] },
+            "url": {
+              "raw": "{{baseUrl}}/api/marketing/dynamic-fields",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "marketing",
+                "dynamic-fields"
+              ]
+            },
             "description": "Get available dynamic field enum options for frontend dropdown (admin only). Returns list like user_fullName, user_phone, branch_name, etc."
           },
           "response": [
@@ -1101,7 +1555,12 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\"message\": \"Dynamic fields fetched successfully\", \"data\": {\"fields\": [{\"value\": \"user_fullName\", \"label\": \"user fullName\"}, {\"value\": \"user_phone\", \"label\": \"user phone\"}, {\"value\": \"user_email\", \"label\": \"user email\"}, {\"value\": \"branch_name\", \"label\": \"branch name\"}, {\"value\": \"branch_number\", \"label\": \"branch number\"}]}}"
             }
           ]
@@ -1129,13 +1588,33 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/marketing/templates?page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "marketing", "templates"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "marketing",
+                "templates"
+              ],
               "query": [
-                { "key": "channel", "value": "whatsapp", "disabled": true },
-                { "key": "isActive", "value": "true", "disabled": true },
-                { "key": "page", "value": "1" },
-                { "key": "limit", "value": "10" }
+                {
+                  "key": "channel",
+                  "value": "whatsapp",
+                  "disabled": true
+                },
+                {
+                  "key": "isActive",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
               ]
             },
             "description": "Get all marketing templates (admin only). Query: channel, isActive, page, limit."
@@ -1146,7 +1625,12 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\"message\": \"Templates fetched successfully\", \"data\": {\"count\": 1, \"total\": 1, \"page\": 1, \"limit\": 10, \"templates\": [{\"_id\": \"tpl_abc123\", \"name\": \"WELCOME_DISCOUNT\", \"displayName\": \"Welcome Discount Offer\", \"channel\": \"whatsapp\", \"whatsappTemplateName\": \"blackbird_welcome_discount\", \"isActive\": true, \"createdBy\": {\"name\": \"Admin\", \"email\": \"admin@example.com\"}, \"createdAt\": \"2026-01-19T10:00:00.000Z\"}]}}"
             }
           ]
@@ -1156,7 +1640,18 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/api/marketing/templates/{{lastCreatedTemplateId}}", "host": ["{{baseUrl}}"], "path": ["api", "marketing", "templates", "{{lastCreatedTemplateId}}"] },
+            "url": {
+              "raw": "{{baseUrl}}/api/marketing/templates/{{lastCreatedTemplateId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "marketing",
+                "templates",
+                "{{lastCreatedTemplateId}}"
+              ]
+            },
             "description": "Get single marketing template by ID (admin only)."
           },
           "response": [
@@ -1165,7 +1660,12 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\"message\": \"Template fetched successfully\", \"data\": {\"_id\": \"tpl_abc123\", \"name\": \"WELCOME_DISCOUNT\", \"displayName\": \"Welcome Discount Offer\", \"channel\": \"whatsapp\", \"whatsappTemplateName\": \"blackbird_welcome_discount\", \"languageCode\": \"en\", \"bodyExample\": \"Hello {{1}}, enjoy {{2}}% discount until {{3}}!\", \"parameters\": [{\"key\": \"name\", \"position\": 1, \"type\": \"string\", \"required\": true, \"description\": \"Customer name\"}, {\"key\": \"percent\", \"position\": 2, \"type\": \"number\", \"required\": true, \"description\": \"Discount percentage\"}, {\"key\": \"days\", \"position\": 3, \"type\": \"number\", \"required\": true, \"description\": \"Days\"}], \"isActive\": true, \"createdBy\": {\"name\": \"Admin\", \"email\": \"admin@example.com\"}, \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T10:00:00.000Z\"}}"
             }
           ]
@@ -1174,12 +1674,29 @@
           "name": "Preview Template",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"parameters\": {\n    \"name\": \"user_fullName\",\n    \"percent\": 20,\n    \"days\": 30\n  }\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/marketing/templates/{{lastCreatedTemplateId}}/preview", "host": ["{{baseUrl}}"], "path": ["api", "marketing", "templates", "{{lastCreatedTemplateId}}", "preview"] },
+            "url": {
+              "raw": "{{baseUrl}}/api/marketing/templates/{{lastCreatedTemplateId}}/preview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "marketing",
+                "templates",
+                "{{lastCreatedTemplateId}}",
+                "preview"
+              ]
+            },
             "description": "Preview template with parameters (admin only). Body: parameters object. Can use typed values OR enum values (like 'user_fullName') - enum values show as empty in preview since no user data available."
           },
           "response": [
@@ -1188,7 +1705,12 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\"message\": \"Preview generated successfully\", \"data\": {\"renderedText\": \"Hello , enjoy 20% discount until 30!\", \"whatsappTemplateName\": \"blackbird_welcome_discount\", \"languageCode\": \"en\", \"mappedParameters\": [\"\", \"20\", \"30\"]}}"
             }
           ]
@@ -1197,12 +1719,29 @@
           "name": "Send - Single Phone",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"audience\": {\n    \"type\": \"single\",\n    \"phone\": \"9876543210\"\n  },\n  \"parameters\": {\n    \"name\": \"John\",\n    \"percent\": 20,\n    \"days\": 30\n  }\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/marketing/templates/{{lastCreatedTemplateId}}/send", "host": ["{{baseUrl}}"], "path": ["api", "marketing", "templates", "{{lastCreatedTemplateId}}", "send"] },
+            "url": {
+              "raw": "{{baseUrl}}/api/marketing/templates/{{lastCreatedTemplateId}}/send",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "marketing",
+                "templates",
+                "{{lastCreatedTemplateId}}",
+                "send"
+              ]
+            },
             "description": "Send marketing message to single phone (admin only). Audience: { type: 'single', phone: '...' }. Parameters: type values OR use enum (like 'user_fullName') - enum values resolved from database if user exists."
           },
           "response": [
@@ -1211,7 +1750,12 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\"message\": \"Marketing send started\", \"data\": {\"_id\": \"ms_123\", \"templateId\": \"tpl_abc123\", \"triggeredBy\": \"678a123\", \"audienceType\": \"single\", \"audienceFilter\": {\"type\": \"single\", \"phone\": \"9876543210\"}, \"parameters\": {\"name\": \"John\", \"percent\": 20, \"days\": 30}, \"perUserParameters\": {}, \"status\": \"completed\", \"stats\": {\"total\": 1, \"success\": 1, \"failed\": 0}, \"completedAt\": \"2026-01-19T10:05:00.000Z\", \"createdAt\": \"2026-01-19T10:00:00.000Z\"}}"
             }
           ]
@@ -1220,12 +1764,29 @@
           "name": "Send - List of Phones",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"audience\": {\n    \"type\": \"list\",\n    \"phones\": [\"9876543210\", \"9123456789\"]\n  },\n  \"parameters\": {\n    \"name\": \"Friend\",\n    \"percent\": 15,\n    \"days\": 30\n  }\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/marketing/templates/{{lastCreatedTemplateId}}/send", "host": ["{{baseUrl}}"], "path": ["api", "marketing", "templates", "{{lastCreatedTemplateId}}", "send"] },
+            "url": {
+              "raw": "{{baseUrl}}/api/marketing/templates/{{lastCreatedTemplateId}}/send",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "marketing",
+                "templates",
+                "{{lastCreatedTemplateId}}",
+                "send"
+              ]
+            },
             "description": "Send to list of phones (admin only). Audience: { type: 'list', phones: ['...', '...'] }."
           },
           "response": [
@@ -1234,7 +1795,12 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\"message\": \"Marketing send started\", \"data\": {\"_id\": \"ms_124\", \"templateId\": \"tpl_abc123\", \"audienceType\": \"list\", \"audienceFilter\": {\"type\": \"list\", \"phones\": [\"9876543210\", \"9123456789\"]}, \"parameters\": {\"name\": \"Friend\", \"percent\": 15, \"days\": 30}, \"status\": \"completed\", \"stats\": {\"total\": 2, \"success\": 2, \"failed\": 0}, \"completedAt\": \"2026-01-19T10:05:00.000Z\"}}"
             }
           ]
@@ -1243,12 +1809,29 @@
           "name": "Send - Branch Customers",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"audience\": {\n    \"type\": \"branch_customers\",\n    \"branchId\": \"{{lastCreatedBranchId}}\",\n    \"dateFilter\": {\n      \"startDate\": \"2026-01-01\",\n      \"endDate\": \"2026-01-31\"\n    }\n  },\n  \"parameters\": {\n    \"name\": \"user_fullName\",\n    \"percent\": 15,\n    \"days\": 30\n  }\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/marketing/templates/{{lastCreatedTemplateId}}/send", "host": ["{{baseUrl}}"], "path": ["api", "marketing", "templates", "{{lastCreatedTemplateId}}", "send"] },
+            "url": {
+              "raw": "{{baseUrl}}/api/marketing/templates/{{lastCreatedTemplateId}}/send",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "marketing",
+                "templates",
+                "{{lastCreatedTemplateId}}",
+                "send"
+              ]
+            },
             "description": "Send to branch customers with date filter (admin only). Audience: { type: 'branch_customers', branchId: '...', dateFilter?: { startDate, endDate } }. Parameters: type values OR use enum (like 'user_fullName') - enum values auto-resolved from each customer's data."
           },
           "response": [
@@ -1257,7 +1840,12 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\"message\": \"Marketing send started\", \"data\": {\"_id\": \"ms_125\", \"templateId\": \"tpl_abc123\", \"audienceType\": \"branch_customers\", \"audienceFilter\": {\"type\": \"branch_customers\", \"branchId\": \"678b001\", \"dateFilter\": {\"startDate\": \"2026-01-01\", \"endDate\": \"2026-01-31\"}}, \"parameters\": {\"name\": \"user_fullName\", \"percent\": 15, \"days\": 30}, \"perUserParameters\": {}, \"status\": \"completed\", \"stats\": {\"total\": 25, \"success\": 23, \"failed\": 2}, \"completedAt\": \"2026-01-19T10:05:00.000Z\"}}"
             }
           ]
@@ -1266,12 +1854,29 @@
           "name": "Send - All Customers",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"audience\": {\n    \"type\": \"all_customers\",\n    \"dateFilter\": {\n      \"startDate\": \"2026-01-01\",\n      \"endDate\": \"2026-01-31\"\n    }\n  },\n  \"parameters\": {\n    \"name\": \"user_fullName\",\n    \"percent\": 10,\n    \"days\": 30\n  }\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/marketing/templates/{{lastCreatedTemplateId}}/send", "host": ["{{baseUrl}}"], "path": ["api", "marketing", "templates", "{{lastCreatedTemplateId}}", "send"] },
+            "url": {
+              "raw": "{{baseUrl}}/api/marketing/templates/{{lastCreatedTemplateId}}/send",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "marketing",
+                "templates",
+                "{{lastCreatedTemplateId}}",
+                "send"
+              ]
+            },
             "description": "Send to all customers with date filter (admin only). Audience: { type: 'all_customers', dateFilter?: { startDate, endDate } }. Parameters: type values OR use enum (like 'user_fullName') - enum values auto-resolved from each customer's data."
           },
           "response": [
@@ -1280,7 +1885,12 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\"message\": \"Marketing send started\", \"data\": {\"_id\": \"ms_126\", \"templateId\": \"tpl_abc123\", \"audienceType\": \"all_customers\", \"audienceFilter\": {\"type\": \"all_customers\", \"dateFilter\": {\"startDate\": \"2026-01-01\", \"endDate\": \"2026-01-31\"}}, \"parameters\": {\"name\": \"user_fullName\", \"percent\": 10, \"days\": 30}, \"perUserParameters\": {}, \"status\": \"completed\", \"stats\": {\"total\": 120, \"success\": 115, \"failed\": 5}, \"completedAt\": \"2026-01-19T10:05:00.000Z\"}}"
             }
           ]
@@ -1290,7 +1900,18 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/api/marketing/sends/ms_123", "host": ["{{baseUrl}}"], "path": ["api", "marketing", "sends", "ms_123"] },
+            "url": {
+              "raw": "{{baseUrl}}/api/marketing/sends/ms_123",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "marketing",
+                "sends",
+                "ms_123"
+              ]
+            },
             "description": "Get send job details by ID (admin only)."
           },
           "response": [
@@ -1299,7 +1920,12 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\"message\": \"Send job fetched successfully\", \"data\": {\"_id\": \"ms_123\", \"templateId\": {\"_id\": \"tpl_abc123\", \"name\": \"WELCOME_DISCOUNT\", \"displayName\": \"Welcome Discount Offer\", \"whatsappTemplateName\": \"blackbird_welcome_discount\"}, \"triggeredBy\": {\"_id\": \"678a123\", \"name\": \"Admin\", \"email\": \"admin@example.com\"}, \"audienceType\": \"branch_customers\", \"audienceFilter\": {\"type\": \"branch_customers\", \"branchId\": \"678b001\", \"dateFilter\": {\"startDate\": \"2026-01-01\", \"endDate\": \"2026-01-31\"}}, \"parameters\": {\"name\": \"user_fullName\", \"percent\": 15, \"days\": 30}, \"perUserParameters\": {}, \"status\": \"completed\", \"stats\": {\"total\": 25, \"success\": 23, \"failed\": 2}, \"completedAt\": \"2026-01-19T10:05:00.000Z\", \"createdAt\": \"2026-01-19T10:00:00.000Z\"}}"
             }
           ]
@@ -1311,11 +1937,23 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/marketing/sends?page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "marketing", "sends"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "marketing",
+                "sends"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "limit", "value": "10" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
               ]
             },
             "description": "Get all send jobs with pagination (admin only). Query: page, limit."
@@ -1326,7 +1964,12 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
               "body": "{\"message\": \"Send jobs fetched successfully\", \"data\": {\"count\": 2, \"total\": 2, \"page\": 1, \"limit\": 10, \"sends\": [{\"_id\": \"ms_123\", \"templateId\": {\"name\": \"WELCOME_DISCOUNT\", \"displayName\": \"Welcome Discount Offer\"}, \"triggeredBy\": {\"name\": \"Admin\", \"email\": \"admin@example.com\"}, \"audienceType\": \"branch_customers\", \"status\": \"completed\", \"stats\": {\"total\": 25, \"success\": 23, \"failed\": 2}, \"createdAt\": \"2026-01-19T10:00:00.000Z\"}]}}"
             }
           ]

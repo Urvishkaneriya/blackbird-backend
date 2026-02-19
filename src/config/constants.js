@@ -28,6 +28,12 @@ const PAYMENT_METHODS = {
   UPI: 'UPI',
 };
 
+const PAYMENT_MODES = {
+  CASH: 'CASH',
+  UPI: 'UPI',
+  SPLIT: 'SPLIT',
+};
+
 // Marketing Template Dynamic Fields (enum for frontend dropdown)
 const MARKETING_DYNAMIC_FIELDS = {
   USER_FULLNAME: 'user_fullName',
@@ -82,6 +88,14 @@ const MESSAGES = {
   BOOKING_CREATED: 'Booking created successfully',
   BOOKINGS_FETCHED: 'Bookings fetched successfully',
   BOOKING_NOT_FOUND: 'Booking not found',
+  INVALID_BOOKING_ITEMS: 'At least one booking item is required',
+  INVALID_PAYMENT_BREAKDOWN: 'Payment breakdown is invalid',
+
+  // Product Messages
+  PRODUCT_CREATED: 'Product created successfully',
+  PRODUCTS_FETCHED: 'Products fetched successfully',
+  PRODUCT_UPDATED: 'Product updated successfully',
+  PRODUCT_NOT_FOUND: 'Product not found',
 
   // User Messages
   USERS_FETCHED: 'Users fetched successfully',
@@ -124,6 +138,7 @@ module.exports = {
   BRANCH_NUMBER_PREFIX,
   BOOKING_NUMBER_PREFIX,
   PAYMENT_METHODS,
+  PAYMENT_MODES,
   MARKETING_DYNAMIC_FIELDS,
   MARKETING_FIELD_MAPPING,
   MESSAGES,

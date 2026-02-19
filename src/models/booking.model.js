@@ -1,5 +1,65 @@
 const mongoose = require('mongoose');
-const { VALIDATION, PAYMENT_METHODS, BOOKING_NUMBER_PREFIX } = require('../config/constants');
+const { VALIDATION, PAYMENT_METHODS, PAYMENT_MODES, BOOKING_NUMBER_PREFIX } = require('../config/constants');
+
+const bookingItemSchema = new mongoose.Schema(
+  {
+    productId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Product',
+      required: [true, 'Product is required'],
+    },
+    productName: {
+      type: String,
+      required: [true, 'Product name is required'],
+      trim: true,
+    },
+    quantity: {
+      type: Number,
+      required: [true, 'Quantity is required'],
+      min: [1, 'Quantity must be at least 1'],
+    },
+    unitPrice: {
+      type: Number,
+      required: [true, 'Unit price is required'],
+      min: [0, 'Unit price must be a positive number'],
+    },
+    lineTotal: {
+      type: Number,
+      required: [true, 'Line total is required'],
+      min: [0, 'Line total must be a positive number'],
+    },
+  },
+  { _id: false }
+);
+
+const paymentSchema = new mongoose.Schema(
+  {
+    cashAmount: {
+      type: Number,
+      default: 0,
+      min: [0, 'cashAmount cannot be negative'],
+    },
+    upiAmount: {
+      type: Number,
+      default: 0,
+      min: [0, 'upiAmount cannot be negative'],
+    },
+    totalAmount: {
+      type: Number,
+      required: [true, 'totalAmount is required'],
+      min: [0, 'totalAmount cannot be negative'],
+    },
+    paymentMode: {
+      type: String,
+      enum: {
+        values: Object.values(PAYMENT_MODES),
+        message: `paymentMode must be ${PAYMENT_MODES.CASH}, ${PAYMENT_MODES.UPI} or ${PAYMENT_MODES.SPLIT}`,
+      },
+      required: [true, 'paymentMode is required'],
+    },
+  },
+  { _id: false }
+);
 
 const bookingSchema = new mongoose.Schema(
   {
@@ -28,14 +88,16 @@ const bookingSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
-    amount: {
-      type: Number,
-      required: [true, 'Amount is required'],
-      min: [0, 'Amount must be a positive number'],
+    items: {
+      type: [bookingItemSchema],
+      required: [true, 'At least one item is required'],
+      validate: {
+        validator: (arr) => Array.isArray(arr) && arr.length > 0,
+        message: 'At least one item is required',
+      },
     },
     size: {
       type: Number,
-      required: [true, 'Size is required'],
       min: [0, 'Size must be a positive number'],
     },
     artistName: {
@@ -43,13 +105,9 @@ const bookingSchema = new mongoose.Schema(
       required: [true, 'Artist name is required'],
       trim: true,
     },
-    paymentMethod: {
-      type: String,
-      required: [true, 'Payment method is required'],
-      enum: {
-        values: Object.values(PAYMENT_METHODS),
-        message: 'Payment method must be either Cash or UPI',
-      },
+    payment: {
+      type: paymentSchema,
+      required: [true, 'Payment details are required'],
     },
     branchId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -94,11 +152,16 @@ bookingSchema.index({ branchId: 1 });
 bookingSchema.index({ employeeId: 1 });
 bookingSchema.index({ userId: 1 });
 bookingSchema.index({ date: -1 });
+bookingSchema.index({ 'payment.paymentMode': 1 });
 
 // Remove __v from JSON; add reminderSent boolean so API and cron never send twice
 bookingSchema.methods.toJSON = function () {
   const booking = this.toObject();
   delete booking.__v;
+  booking.amount = booking.payment?.totalAmount ?? 0;
+  if (booking.payment?.paymentMode === PAYMENT_MODES.CASH) booking.paymentMethod = PAYMENT_METHODS.CASH;
+  else if (booking.payment?.paymentMode === PAYMENT_MODES.UPI) booking.paymentMethod = PAYMENT_METHODS.UPI;
+  else booking.paymentMethod = `${PAYMENT_METHODS.CASH} + ${PAYMENT_METHODS.UPI}`;
   booking.reminderSent = !!booking.reminderSentAt;
   return booking;
 };

@@ -4,8 +4,8 @@ const { MESSAGES, ROLES } = require('../config/constants');
 
 /**
  * Get dashboard data for date range.
- * Admin: full dashboard (summary, byBranch, byPaymentMethod, totals).
- * Employee: branch dashboard for assigned branch (branchInfo, summary, byPaymentMethod).
+ * Admin: full dashboard (summary, byBranch, byPaymentMethod, byPaymentMode, topProducts, totals).
+ * Employee: branch dashboard for assigned branch (branchInfo, summary, byPaymentMethod, byPaymentMode, topProducts).
  * GET /api/dashboard?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
  */
 async function getDashboard(req, res, next) {

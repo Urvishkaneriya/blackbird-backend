@@ -29,10 +29,10 @@ Run requests in this order:
 
 1. **Health Check** - Verify server is running
 2. **Login - Admin** - Get admin token (auto-saved)
-3. **Create Employee** - Create a test employee
-4. **Get All Employees** - List all employees
-5. **Update Employee** - Update the employee
-6. **Delete Employee** - Delete the employee
+3. **Get Products** - Fetch default `Tattoo` product id (auto-saved as `defaultProductId`)
+4. **Create Product** - Create admin-defined product (auto-saved as `lastCreatedProductId`)
+5. **Create Booking** - Use both product ids + split payment payload
+6. **Get Dashboard** - Validate payment + product analytics
 
 ## ✨ Features
 
@@ -68,6 +68,8 @@ Each request includes tests that:
 | `employeeToken` | Employee token | Yes (on employee login) |
 | `employeeId` | Employee user ID | Yes |
 | `lastCreatedEmployeeId` | Last created employee ID | Yes (on create) |
+| `defaultProductId` | Default Tattoo product ID | Yes (on get products) |
+| `lastCreatedProductId` | Last created admin product ID | Yes (on create product) |
 
 ## 📋 API Endpoints Included
 
@@ -85,6 +87,16 @@ Each request includes tests that:
 - `PUT /api/employees/:id` - Update employee
 - `DELETE /api/employees/:id` - Delete employee
 - `GET /api/employees/search?q=term` - Search employees
+
+### Product Management (Admin Only)
+- `GET /api/products` - Get products (includes default Tattoo)
+- `POST /api/products` - Create admin-defined product
+- `PUT /api/products/:id` - Update product
+- `PATCH /api/products/:id/status` - Update active status
+
+### Booking Management
+- `POST /api/bookings` - Create booking with `items[]` and `payment{cashAmount, upiAmount}`
+- `GET /api/bookings` - Get bookings with payment split + product line items
 
 ## 🔧 Configuration
 
