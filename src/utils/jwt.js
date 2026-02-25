@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { JWT_CONFIG } = require('../config/constants');
+const env = require('../config/env');
 
 /**
  * Generate JWT token
@@ -7,7 +8,7 @@ const { JWT_CONFIG } = require('../config/constants');
  * @returns {String} JWT token
  */
 const generateToken = (payload) => {
-  return jwt.sign(payload, process.env.JWT_SECRET, {
+  return jwt.sign(payload, env.JWT_SECRET, {
     expiresIn: JWT_CONFIG.EXPIRY,
   });
 };
@@ -19,7 +20,7 @@ const generateToken = (payload) => {
  */
 const verifyToken = (token) => {
   try {
-    return jwt.verify(token, process.env.JWT_SECRET);
+    return jwt.verify(token, env.JWT_SECRET);
   } catch (error) {
     throw new Error('Invalid or expired token');
   }

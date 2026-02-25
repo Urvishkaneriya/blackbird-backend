@@ -1,5 +1,6 @@
 const { serverErrorResponse } = require('../utils/response');
 const { MESSAGES } = require('../config/constants');
+const env = require('../config/env');
 
 /**
  * Global error handling middleware
@@ -8,7 +9,7 @@ const { MESSAGES } = require('../config/constants');
 const errorHandler = (err, req, res, next) => {
   console.error('Error occurred:', {
     message: err.message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+    stack: env.isDevelopment ? err.stack : undefined,
     path: req.path,
     method: req.method,
   });
@@ -58,7 +59,7 @@ const errorHandler = (err, req, res, next) => {
   return serverErrorResponse(
     res,
     err.message || MESSAGES.SERVER_ERROR,
-    process.env.NODE_ENV === 'development' ? { stack: err.stack } : null
+    env.isDevelopment ? { stack: err.stack } : null
   );
 };
 

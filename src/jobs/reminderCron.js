@@ -3,18 +3,17 @@ const Booking = require('../models/booking.model');
 const Product = require('../models/product.model');
 const settingsService = require('../services/settings.service');
 const whatsappService = require('../services/whatsapp.service');
+const env = require('../config/env');
 
-/**
- * Run reminder job: find bookings that are >= reminderTimeDays old and reminderSentAt is null,
- * send WhatsApp reminder, then set reminderSentAt so we never send again for that booking.
- */
+let reminderTask = null;
+
 async function runReminderJob() {
-  console.log('⏰ Reminder cron: running');
+  console.log('Reminder cron: running');
   try {
     const settings = await settingsService.getSettings();
     if (!settings.whatsappEnabled) return;
     if (!settings.reminderEnabled) {
-      console.log('⏰ Reminder cron: reminders disabled in settings');
+      console.log('Reminder cron: reminders disabled in settings');
       return;
     }
 
@@ -25,7 +24,7 @@ async function runReminderJob() {
 
     const defaultProduct = await Product.findOne({ isDefault: true }).lean();
     if (!defaultProduct) {
-      console.log('⏰ Reminder cron: default Tattoo product not found; skipping');
+      console.log('Reminder cron: default Tattoo product not found; skipping');
       return;
     }
 
@@ -40,33 +39,46 @@ async function runReminderJob() {
       .populate('userId', 'fullName phone')
       .lean();
 
-    for (const b of bookings) {
-      const phone = b.phone || b.userId?.phone;
+    for (const booking of bookings) {
+      const phone = booking.phone || booking.userId?.phone;
       if (!phone) continue;
-      const fullName = b.fullName || b.userId?.fullName || 'Customer';
-      const daysPassed = Math.floor((Date.now() - new Date(b.date).getTime()) / (24 * 60 * 60 * 1000));
+
+      const fullName = booking.fullName || booking.userId?.fullName || 'Customer';
+      const daysPassed = Math.floor(
+        (Date.now() - new Date(booking.date).getTime()) / (24 * 60 * 60 * 1000)
+      );
       const phoneFormatted = phone.replace(/^\+?91/, '').replace(/\D/g, '');
       const toSend = phoneFormatted ? `+91${phoneFormatted}` : null;
       if (!toSend) continue;
 
       const result = await whatsappService.sendReminderMessage(toSend, { fullName, daysPassed });
-
       if (result.success) {
-        await Booking.findByIdAndUpdate(b._id, { reminderSentAt: new Date() });
+        await Booking.findByIdAndUpdate(booking._id, { reminderSentAt: new Date() });
       }
     }
+
     if (bookings.length > 0) {
-      console.log(`⏰ Reminder cron: processed ${bookings.length} booking(s)`);
+      console.log(`Reminder cron: processed ${bookings.length} booking(s)`);
     }
-  } catch (err) {
-    console.error('⏰ Reminder cron error:', err.message);
+  } catch (error) {
+    console.error('Reminder cron error:', error.message);
   }
 }
 
 function start() {
-  // Every 12 hours: at 00:00 and 12:00 (5-field: minute hour day month weekday)
-  cron.schedule('0 */12 * * *', runReminderJob, { timezone: 'Asia/Kolkata' });
-  console.log('⏰ Reminder cron scheduled (every 12 hours)');
+  if (reminderTask) return;
+
+  reminderTask = cron.schedule(env.REMINDER_CRON_EXPRESSION, runReminderJob, {
+    timezone: env.CRON_TIMEZONE,
+  });
+  console.log(`Reminder cron scheduled (${env.REMINDER_CRON_EXPRESSION}, ${env.CRON_TIMEZONE})`);
 }
 
-module.exports = { start, runReminderJob };
+function stop() {
+  if (!reminderTask) return;
+  reminderTask.stop();
+  reminderTask = null;
+  console.log('Reminder cron stopped');
+}
+
+module.exports = { start, stop, runReminderJob };
