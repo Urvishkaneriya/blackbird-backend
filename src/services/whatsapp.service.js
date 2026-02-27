@@ -111,7 +111,29 @@ class WhatsAppService {
 
       const formattedPhone = phone.replace(/\D/g, '');
       // Trim template name - Meta expects exact match (no leading/trailing spaces)
-      const template = buildTemplatePayload((templateName || '').trim(), orderedParameters, (languageCode || 'en').trim());
+      const template = buildTemplatePayload(
+        (templateName || '').trim(),
+        orderedParameters,
+        (languageCode || 'en').trim()
+      );
+
+      // If a static header image is configured, attach it for marketing templates.
+      // This assumes the Meta marketing template has an IMAGE header.
+      const headerMediaId = process.env.WHATSAPP_MEDIA_ID;
+      if (headerMediaId) {
+        if (!Array.isArray(template.components)) {
+          template.components = template.components ? [template.components] : [];
+        }
+        template.components.unshift({
+          type: 'header',
+          parameters: [
+            {
+              type: 'image',
+              image: { id: headerMediaId },
+            },
+          ],
+        });
+      }
       const apiUrl = `https://graph.facebook.com/v18.0/${process.env.TEST_NUM_ID}/messages`;
 
       const payload = {
