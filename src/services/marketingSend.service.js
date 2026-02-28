@@ -171,6 +171,11 @@ class MarketingSendService {
     if (!settings.whatsappEnabled) {
       throw new Error('WhatsApp is disabled in settings');
     }
+    const defaultWhatsAppConfig = {
+      token: settings.wpToken || process.env.WHATSAPP_TOKEN,
+      accountId: settings.wpAccountId || process.env.WHATSAPP_ACCOUNT_ID,
+      mediaId: settings.wpMediaId || process.env.WHATSAPP_MEDIA_ID,
+    };
 
     // Validate required parameters
     const requiredParams = template.parameters.filter((p) => p.required === true);
@@ -212,11 +217,16 @@ class MarketingSendService {
         const toSend = phoneFormatted ? `+91${phoneFormatted}` : null;
 
         if (toSend) {
+          const whatsappConfig = {
+            ...defaultWhatsAppConfig,
+            numberId: item.branch?.whatsappNumberId || process.env.TEST_NUM_ID,
+          };
           const result = await whatsappService.sendMarketingMessage(
             toSend,
             template.whatsappTemplateName,
             template.languageCode,
-            orderedParams
+            orderedParams,
+            whatsappConfig
           );
 
           if (result.success) {

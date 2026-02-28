@@ -7,12 +7,15 @@ class BranchService {
    * @returns {Promise<Object>} Created branch document
    */
   async createBranch(branchData) {
-    const { name, address } = branchData;
+    const { name, address, phoneNumber, whatsappNumberId } = branchData;
+    const normalizedPhone = String(phoneNumber || '').replace(/\D/g, '');
 
     // Create branch
     const branch = new Branch({
       name,
       address,
+      phoneNumber: normalizedPhone,
+      whatsappNumberId: String(whatsappNumberId || '').trim(),
       employeeCount: 0,
     });
 
@@ -55,6 +58,13 @@ class BranchService {
     // Don't allow updating immutable fields
     delete updateData.branchNumber;
     delete updateData.employeeCount;
+
+    if (updateData.phoneNumber !== undefined) {
+      updateData.phoneNumber = String(updateData.phoneNumber || '').replace(/\D/g, '');
+    }
+    if (updateData.whatsappNumberId !== undefined) {
+      updateData.whatsappNumberId = String(updateData.whatsappNumberId || '').trim();
+    }
 
     return await Branch.findByIdAndUpdate(id, updateData, {
       new: true,

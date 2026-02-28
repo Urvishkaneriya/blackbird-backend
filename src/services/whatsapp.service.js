@@ -1,31 +1,31 @@
 const axios = require('axios');
-const { getBlackbirdInvoicePayload, getBlackbirdCheckupReminderPayload, buildTemplatePayload } = require('../utils/whatsappTemplates');
+const {
+  getBlackbirdInvoicePayload,
+  getBlackbirdCheckupReminderPayload,
+  buildTemplatePayload,
+} = require('../utils/whatsappTemplates');
 
 class WhatsAppService {
-  /**
-   * Send invoice message via WhatsApp using blackbird_invoice template
-   * @param {String} phone - Customer phone number
-   * @param {Object} bookingData - Booking data with populated branch
-   * @returns {Promise<Object>} API response
-   */
-  async sendInvoiceMessage(phone, bookingData) {
+  resolveConfig(config = {}) {
+    return {
+      token: config.token || process.env.WHATSAPP_TOKEN || '',
+      numberId: config.numberId || process.env.TEST_NUM_ID || '',
+      accountId: config.accountId || process.env.WHATSAPP_ACCOUNT_ID || '',
+      mediaId: config.mediaId || process.env.WHATSAPP_MEDIA_ID || '',
+    };
+  }
+
+  async sendInvoiceMessage(phone, bookingData, config = {}) {
     try {
-      // Validate required config (enable/disable is controlled by DB settings)
-      if (!process.env.WHATSAPP_TOKEN || !process.env.TEST_NUM_ID) {
-        console.error('❌ WhatsApp configuration missing');
+      const resolvedConfig = this.resolveConfig(config);
+      if (!resolvedConfig.token || !resolvedConfig.numberId) {
         return { success: false, message: 'WhatsApp configuration missing' };
       }
 
-      // Format phone number (remove spaces, +, special chars, keep only digits)
       const formattedPhone = phone.replace(/\D/g, '');
-
-      // Build template payload using utility
       const template = getBlackbirdInvoicePayload(bookingData);
+      const apiUrl = `https://graph.facebook.com/v18.0/${resolvedConfig.numberId}/messages`;
 
-      // Meta WhatsApp Business API endpoint
-      const apiUrl = `https://graph.facebook.com/v18.0/${process.env.TEST_NUM_ID}/messages`;
-
-      // Request payload - template message
       const payload = {
         messaging_product: 'whatsapp',
         to: formattedPhone,
@@ -33,24 +33,21 @@ class WhatsAppService {
         template,
       };
 
-      // Send message
       const response = await axios.post(apiUrl, payload, {
         headers: {
-          Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+          Authorization: `Bearer ${resolvedConfig.token}`,
           'Content-Type': 'application/json',
         },
-        timeout: 10000, // 10 second timeout
+        timeout: 10000,
       });
 
-      console.log('✅ WhatsApp message sent successfully:', response.data);
+      console.log('WhatsApp invoice sent:', response.data);
       return { success: true, data: response.data };
-
     } catch (error) {
-      // Log error but don't throw - booking should still succeed
-      console.error('❌ WhatsApp message failed:', {
+      console.error('WhatsApp invoice failed:', {
         message: error.message,
         response: error.response?.data,
-        phone: phone,
+        phone,
       });
       return {
         success: false,
@@ -60,82 +57,65 @@ class WhatsAppService {
     }
   }
 
-  /**
-   * Send checkup reminder via WhatsApp using blackbird_checkup_reminder template
-   * @param {String} phone - Customer phone number
-   * @param {Object} data - { fullName, daysPassed }
-   * @returns {Promise<Object>} API response
-   */
-  async sendReminderMessage(phone, data) {
+  async sendReminderMessage(phone, data, config = {}) {
     try {
-      if (!process.env.WHATSAPP_TOKEN || !process.env.TEST_NUM_ID) {
+      const resolvedConfig = this.resolveConfig(config);
+      if (!resolvedConfig.token || !resolvedConfig.numberId) {
         return { success: false, message: 'WhatsApp configuration missing' };
       }
+
       const formattedPhone = phone.replace(/\D/g, '');
       const template = getBlackbirdCheckupReminderPayload(data.fullName, data.daysPassed);
-      const apiUrl = `https://graph.facebook.com/v18.0/${process.env.TEST_NUM_ID}/messages`;
+      const apiUrl = `https://graph.facebook.com/v18.0/${resolvedConfig.numberId}/messages`;
       const payload = {
         messaging_product: 'whatsapp',
         to: formattedPhone,
         type: 'template',
         template,
       };
+
       const response = await axios.post(apiUrl, payload, {
         headers: {
-          Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+          Authorization: `Bearer ${resolvedConfig.token}`,
           'Content-Type': 'application/json',
         },
         timeout: 10000,
       });
-      console.log('✅ WhatsApp reminder sent:', response.data);
+
+      console.log('WhatsApp reminder sent:', response.data);
       return { success: true, data: response.data };
     } catch (error) {
-      console.error('❌ WhatsApp reminder failed:', { message: error.message, phone });
+      console.error('WhatsApp reminder failed:', { message: error.message, phone });
       return { success: false, message: error.message };
     }
   }
 
-  /**
-   * Send marketing message via WhatsApp using dynamic template
-   * @param {String} phone - Customer phone number
-   * @param {String} templateName - WhatsApp template name (from Meta)
-   * @param {String} languageCode - Language code (default: 'en')
-   * @param {Array<String>} orderedParameters - Ordered array of parameter values for {{1}}, {{2}}, etc.
-   * @returns {Promise<Object>} API response
-   */
-  async sendMarketingMessage(phone, templateName, languageCode, orderedParameters) {
+  async sendMarketingMessage(phone, templateName, languageCode, orderedParameters, config = {}) {
     try {
-      if (!process.env.WHATSAPP_TOKEN || !process.env.TEST_NUM_ID) {
+      const resolvedConfig = this.resolveConfig(config);
+      if (!resolvedConfig.token || !resolvedConfig.numberId) {
         return { success: false, message: 'WhatsApp configuration missing' };
       }
 
       const formattedPhone = phone.replace(/\D/g, '');
-      // Trim template name - Meta expects exact match (no leading/trailing spaces)
       const template = buildTemplatePayload(
         (templateName || '').trim(),
         orderedParameters,
         (languageCode || 'en').trim()
       );
 
-      // If a static header image is configured, attach it for marketing templates.
-      // This assumes the Meta marketing template has an IMAGE header.
-      const headerMediaId = process.env.WHATSAPP_MEDIA_ID;
+      const headerMediaId = resolvedConfig.mediaId;
       if (headerMediaId) {
         if (!Array.isArray(template.components)) {
           template.components = template.components ? [template.components] : [];
         }
         template.components.unshift({
           type: 'header',
-          parameters: [
-            {
-              type: 'image',
-              image: { id: headerMediaId },
-            },
-          ],
+          parameters: [{ type: 'image', image: { id: headerMediaId } }],
         });
       }
-      const apiUrl = `https://graph.facebook.com/v18.0/${process.env.TEST_NUM_ID}/messages`;
 
+      const apiUrl = `https://graph.facebook.com/v18.0/${resolvedConfig.numberId}/messages`;
       const payload = {
         messaging_product: 'whatsapp',
         to: formattedPhone,
@@ -145,29 +125,27 @@ class WhatsAppService {
 
       const response = await axios.post(apiUrl, payload, {
         headers: {
-          Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+          Authorization: `Bearer ${resolvedConfig.token}`,
           'Content-Type': 'application/json',
         },
         timeout: 10000,
       });
 
-      console.log('✅ WhatsApp marketing message sent:', response.data);
+      console.log('WhatsApp marketing message sent:', response.data);
       return { success: true, data: response.data };
     } catch (error) {
       const errData = error.response?.data;
       const code = errData?.error?.code;
-      console.error('❌ WhatsApp marketing message failed:', {
+      console.error('WhatsApp marketing message failed:', {
         message: error.message,
         response: errData,
-        phone: phone,
+        phone,
       });
-      // Log payload when parameter format error (132012) to help debug
       if (code === 132012) {
-        console.error('❌ [132012] Template payload sent (check name + params match Meta exactly):', {
+        console.error('[132012] Template payload sent:', {
           templateName: (templateName || '').trim(),
           languageCode: (languageCode || 'en').trim(),
           parameterCount: Array.isArray(orderedParameters) ? orderedParameters.length : 0,
-          parameters: Array.isArray(orderedParameters) ? orderedParameters.map((p, i) => `{{${i + 1}}}=${JSON.stringify(p)}`) : orderedParameters,
         });
       }
       return {
@@ -178,11 +156,6 @@ class WhatsAppService {
     }
   }
 
-  /**
-   * Format phone number for WhatsApp API
-   * @param {String} phone - Phone number
-   * @returns {String} Formatted phone number
-   */
   formatPhoneNumber(phone) {
     return phone.replace(/\D/g, '');
   }

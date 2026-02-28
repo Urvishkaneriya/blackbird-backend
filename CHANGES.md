@@ -238,3 +238,61 @@ Postman collection has been updated with:
 
 1. If customer is new, birthday is stored.
 2. If customer already exists, birthday is updated from booking payload.
+
+## 10. Branch WhatsApp Routing + Admin WhatsApp Settings
+
+### Branch model/API changes
+
+Branch create now requires:
+
+1. `phoneNumber` (10-15 digits)
+2. `whatsappNumberId` (Meta phone number id used as sender for that branch)
+
+Updated branch payload:
+
+```json
+{
+  "name": "Downtown Branch",
+  "address": "123 Main Street, City, State 12345",
+  "phoneNumber": "9876543210",
+  "whatsappNumberId": "1020009854522750"
+}
+```
+
+### Settings model/API changes
+
+Settings now include additional WhatsApp fields:
+
+1. `wpToken` (WhatsApp API token)
+2. `wpAccountId` (WhatsApp Business account id)
+3. `selfSendNumber` (number to receive self invoice copy)
+4. `wpMediaId` (Meta media id for marketing template header image)
+
+Updated settings payload:
+
+```json
+{
+  "whatsappEnabled": true,
+  "reminderEnabled": true,
+  "reminderTimeDays": 60,
+  "selfInvoiceMessageEnabled": true,
+  "wpToken": "EAAXXX...",
+  "wpAccountId": "1080651450854191",
+  "selfSendNumber": "9876543210",
+  "wpMediaId": "1915798535743551"
+}
+```
+
+### Invoice + reminder sender behavior (important)
+
+1. Booking invoice to customer is sent from booking branch `whatsappNumberId`.
+2. Reminder cron sends from each booking's branch `whatsappNumberId`.
+3. Token/account are read from settings (`wpToken`, `wpAccountId`) with env fallback.
+4. Self invoice copy is sent to `settings.selfSendNumber` with env `WHATSAPP_NUM` fallback.
+5. Marketing header image uses `settings.wpMediaId` with env `WHATSAPP_MEDIA_ID` fallback.
+
+### Frontend impact
+
+1. Branch create/edit form must include `phoneNumber` and `whatsappNumberId`.
+2. Admin settings page must include `wpToken`, `wpAccountId`, `selfSendNumber`, `wpMediaId`.
+3. Existing branch rows without `whatsappNumberId` should be updated before relying on WhatsApp sends.

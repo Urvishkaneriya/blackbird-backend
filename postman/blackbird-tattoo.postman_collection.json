@@ -363,13 +363,10 @@
                   "    pm.expect(jsonData.message).to.eql('Branch created successfully');",
                   "    pm.expect(jsonData.data).to.have.property('_id');",
                   "    pm.expect(jsonData.data).to.have.property('branchNumber');",
-                  "    pm.expect(jsonData.data).to.have.property('employeeCount');",
-                  "    pm.expect(jsonData.data.employeeCount).to.eql(0);",
-                  "    ",
-                  "    // Save branch ID for other tests",
+                  "    pm.expect(jsonData.data).to.have.property('phoneNumber');",
+                  "    pm.expect(jsonData.data).to.have.property('whatsappNumberId');",
                   "    pm.environment.set('lastCreatedBranchId', jsonData.data._id);",
-                  "    ",
-                  "    console.log('✅ Branch created:', jsonData.data.branchNumber);",
+                  "    pm.environment.set('branchWhatsappNumberId', jsonData.data.whatsappNumberId);",
                   "});"
                 ]
               }
@@ -385,7 +382,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Downtown Branch\",\n  \"address\": \"123 Main Street, City, State 12345\"\n}"
+              "raw": "{\n  \"name\": \"Downtown Branch\",\n  \"address\": \"123 Main Street, City, State 12345\",\n  \"phoneNumber\": \"{{branchPhoneNumber}}\",\n  \"whatsappNumberId\": \"{{branchWhatsappNumberId}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/branches",
@@ -397,7 +394,7 @@
                 "branches"
               ]
             },
-            "description": "Create a new branch (Admin only)"
+            "description": "Create a new branch (Admin only). Required: name, address, phoneNumber, whatsappNumberId."
           },
           "response": [
             {
@@ -411,7 +408,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\"message\": \"Branch created successfully\", \"data\": {\"_id\": \"678b001\", \"name\": \"Downtown Branch\", \"address\": \"123 Main Street\", \"branchNumber\": \"BRANCH0001\", \"employeeCount\": 0, \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T10:00:00.000Z\"}}"
+              "body": "{\"message\": \"Branch created successfully\", \"data\": {\"_id\": \"678b001\", \"name\": \"Downtown Branch\", \"address\": \"123 Main Street\", \"phoneNumber\": \"9876543210\", \"whatsappNumberId\": \"1020009854522750\", \"branchNumber\": \"BRANCH0001\", \"employeeCount\": 0, \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T10:00:00.000Z\"}}"
             }
           ]
         },
@@ -500,7 +497,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Downtown Branch - Updated\",\n  \"address\": \"123 Main Street, Updated City, State 12345\"\n}"
+              "raw": "{\n  \"name\": \"Downtown Branch - Updated\",\n  \"address\": \"123 Main Street, Updated City, State 12345\",\n  \"phoneNumber\": \"{{branchPhoneNumber}}\",\n  \"whatsappNumberId\": \"{{branchWhatsappNumberId}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/branches/{{lastCreatedBranchId}}",
@@ -527,7 +524,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\"message\": \"Branch updated successfully\", \"data\": {\"_id\": \"678b001\", \"name\": \"Downtown Branch - Updated\", \"address\": \"123 Main Street, Updated\", \"branchNumber\": \"BRANCH0001\", \"employeeCount\": 0}}"
+              "body": "{\"message\": \"Branch updated successfully\", \"data\": {\"_id\": \"678b001\", \"name\": \"Downtown Branch - Updated\", \"address\": \"123 Main Street, Updated\", \"phoneNumber\": \"9876543210\", \"whatsappNumberId\": \"1020009854522750\", \"branchNumber\": \"BRANCH0001\", \"employeeCount\": 0}}"
             }
           ]
         }
@@ -1385,7 +1382,10 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
                   "pm.test('Settings returned', function () {",
                   "    const jsonData = pm.response.json();",
                   "    pm.expect(jsonData.message).to.eql('Settings fetched successfully');",
@@ -1393,6 +1393,10 @@
                   "    pm.expect(jsonData.data).to.have.property('reminderEnabled');",
                   "    pm.expect(jsonData.data).to.have.property('reminderTimeDays');",
                   "    pm.expect(jsonData.data).to.have.property('selfInvoiceMessageEnabled');",
+                  "    pm.expect(jsonData.data).to.have.property('wpToken');",
+                  "    pm.expect(jsonData.data).to.have.property('wpAccountId');",
+                  "    pm.expect(jsonData.data).to.have.property('selfSendNumber');",
+                  "    pm.expect(jsonData.data).to.have.property('wpMediaId');",
                   "});"
                 ]
               }
@@ -1411,7 +1415,7 @@
                 "settings"
               ]
             },
-            "description": "Get app settings (admin only). Returns whatsappEnabled, reminderEnabled, reminderTimeDays, selfInvoiceMessageEnabled."
+            "description": "Get app settings (admin only). Returns whatsappEnabled, reminderEnabled, reminderTimeDays, selfInvoiceMessageEnabled, wpToken, wpAccountId, selfSendNumber, wpMediaId."
           },
           "response": [
             {
@@ -1425,7 +1429,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\"message\": \"Settings fetched successfully\", \"data\": {\"_id\": \"678s001\", \"whatsappEnabled\": true, \"reminderEnabled\": true, \"reminderTimeDays\": 60, \"selfInvoiceMessageEnabled\": true, \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T10:00:00.000Z\"}}"
+              "body": "{\"message\": \"Settings fetched successfully\", \"data\": {\"_id\": \"678s001\", \"whatsappEnabled\": true, \"reminderEnabled\": true, \"reminderTimeDays\": 60, \"selfInvoiceMessageEnabled\": true, \"wpToken\": \"\", \"wpAccountId\": \"\", \"selfSendNumber\": \"\", \"wpMediaId\": \"\", \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T10:00:00.000Z\"}}"
             }
           ]
         },
@@ -1456,7 +1460,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"whatsappEnabled\": true, \"reminderEnabled\": true, \"reminderTimeDays\": 60, \"selfInvoiceMessageEnabled\": true}"
+              "raw": "{\n  \"whatsappEnabled\": true,\n  \"reminderEnabled\": true,\n  \"reminderTimeDays\": 60,\n  \"selfInvoiceMessageEnabled\": true,\n  \"wpToken\": \"{{wpToken}}\",\n  \"wpAccountId\": \"{{wpAccountId}}\",\n  \"selfSendNumber\": \"{{selfSendNumber}}\",\n  \"wpMediaId\": \"{{wpMediaId}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/settings",
@@ -1468,7 +1472,7 @@
                 "settings"
               ]
             },
-            "description": "Update settings (admin only). Body: whatsappEnabled?, reminderEnabled?, reminderTimeDays? (min 1), selfInvoiceMessageEnabled?."
+            "description": "Update settings (admin only). Body: whatsappEnabled?, reminderEnabled?, reminderTimeDays? (min 1), selfInvoiceMessageEnabled?, wpToken?, wpAccountId?, selfSendNumber?, wpMediaId?."
           },
           "response": [
             {
@@ -1482,7 +1486,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\"message\": \"Settings updated successfully\", \"data\": {\"_id\": \"678s001\", \"whatsappEnabled\": true, \"reminderEnabled\": true, \"reminderTimeDays\": 60, \"selfInvoiceMessageEnabled\": true, \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T12:00:00.000Z\"}}"
+              "body": "{\"message\": \"Settings updated successfully\", \"data\": {\"_id\": \"678s001\", \"whatsappEnabled\": true, \"reminderEnabled\": true, \"reminderTimeDays\": 60, \"selfInvoiceMessageEnabled\": true, \"wpToken\": \"EAAXXX...\", \"wpAccountId\": \"1080651450854191\", \"selfSendNumber\": \"9876543210\", \"wpMediaId\": \"1915798535743551\", \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T12:00:00.000Z\"}}"
             }
           ]
         }

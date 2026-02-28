@@ -13,6 +13,18 @@ const branchSchema = new mongoose.Schema(
       required: [true, 'Branch address is required'],
       trim: true,
     },
+    phoneNumber: {
+      type: String,
+      required: [true, 'Branch phone number is required'],
+      trim: true,
+      match: [VALIDATION.PHONE_REGEX, 'Please provide a valid phone number (10-15 digits)'],
+    },
+    whatsappNumberId: {
+      type: String,
+      required: [true, 'Branch WhatsApp number ID is required'],
+      trim: true,
+      unique: true,
+    },
     branchNumber: {
       type: String,
       unique: true,
@@ -43,6 +55,7 @@ branchSchema.pre('save', async function (next) {
 // Indexes for faster queries
 branchSchema.index({ branchNumber: 1 });
 branchSchema.index({ name: 1 });
+branchSchema.index({ whatsappNumberId: 1 });
 
 // Remove __v from JSON responses
 branchSchema.methods.toJSON = function () {

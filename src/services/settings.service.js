@@ -5,6 +5,10 @@ const DEFAULT_SETTINGS = {
   reminderEnabled: true,
   reminderTimeDays: 60,
   selfInvoiceMessageEnabled: true,
+  wpToken: '',
+  wpAccountId: '',
+  selfSendNumber: '',
+  wpMediaId: '',
 };
 
 /**
@@ -15,6 +19,18 @@ async function getSettings() {
   let settings = await Settings.findOne();
   if (!settings) {
     settings = await Settings.create(DEFAULT_SETTINGS);
+    return settings;
+  }
+
+  let changed = false;
+  for (const [key, value] of Object.entries(DEFAULT_SETTINGS)) {
+    if (settings[key] === undefined) {
+      settings[key] = value;
+      changed = true;
+    }
+  }
+  if (changed) {
+    await settings.save();
   }
   return settings;
 }
@@ -34,6 +50,12 @@ async function updateSettings(updateData) {
     payload.reminderTimeDays = days;
   }
   if (updateData.selfInvoiceMessageEnabled !== undefined) payload.selfInvoiceMessageEnabled = Boolean(updateData.selfInvoiceMessageEnabled);
+  if (updateData.wpToken !== undefined) payload.wpToken = String(updateData.wpToken || '').trim();
+  if (updateData.wpAccountId !== undefined) payload.wpAccountId = String(updateData.wpAccountId || '').trim();
+  if (updateData.selfSendNumber !== undefined) {
+    payload.selfSendNumber = String(updateData.selfSendNumber || '').replace(/\D/g, '');
+  }
+  if (updateData.wpMediaId !== undefined) payload.wpMediaId = String(updateData.wpMediaId || '').trim();
 
   let settings = await Settings.findOne();
   if (!settings) {

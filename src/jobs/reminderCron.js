@@ -37,6 +37,7 @@ async function runReminderJob() {
       ],
     })
       .populate('userId', 'fullName phone')
+      .populate('branchId', 'name branchNumber whatsappNumberId')
       .lean();
 
     for (const booking of bookings) {
@@ -51,7 +52,16 @@ async function runReminderJob() {
       const toSend = phoneFormatted ? `+91${phoneFormatted}` : null;
       if (!toSend) continue;
 
-      const result = await whatsappService.sendReminderMessage(toSend, { fullName, daysPassed });
+      const whatsappConfig = {
+        token: settings.wpToken || process.env.WHATSAPP_TOKEN,
+        accountId: settings.wpAccountId || process.env.WHATSAPP_ACCOUNT_ID,
+        numberId: booking?.branchId?.whatsappNumberId || process.env.TEST_NUM_ID,
+      };
+      const result = await whatsappService.sendReminderMessage(
+        toSend,
+        { fullName, daysPassed },
+        whatsappConfig
+      );
       if (result.success) {
         await Booking.findByIdAndUpdate(booking._id, { reminderSentAt: new Date() });
       }

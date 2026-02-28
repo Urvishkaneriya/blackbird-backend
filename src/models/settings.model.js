@@ -20,6 +20,26 @@ const settingsSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    wpToken: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    wpAccountId: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    selfSendNumber: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    wpMediaId: {
+      type: String,
+      trim: true,
+      default: '',
+    },
   },
   {
     timestamps: true,

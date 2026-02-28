@@ -89,9 +89,14 @@ class BookingService {
 
     try {
       const bookingWithBranch = await Booking.findById(savedBooking._id)
-        .populate('branchId', 'name branchNumber')
+        .populate('branchId', 'name branchNumber whatsappNumberId')
         .lean();
       const settings = await settingsService.getSettings();
+      const whatsappConfig = {
+        token: settings.wpToken || process.env.WHATSAPP_TOKEN,
+        accountId: settings.wpAccountId || process.env.WHATSAPP_ACCOUNT_ID,
+        numberId: bookingWithBranch?.branchId?.whatsappNumberId || process.env.TEST_NUM_ID,
+      };
 
       const payload = {
         bookingNumber: bookingWithBranch.bookingNumber,
@@ -105,12 +110,17 @@ class BookingService {
       };
 
       if (settings.whatsappEnabled) {
-        await whatsappService.sendInvoiceMessage('+91' + phone.replace(/\D/g, '').replace(/^91/, ''), payload);
+        await whatsappService.sendInvoiceMessage(
+          '+91' + phone.replace(/\D/g, '').replace(/^91/, ''),
+          payload,
+          whatsappConfig
+        );
       }
-      if (settings.whatsappEnabled && settings.selfInvoiceMessageEnabled && process.env.WHATSAPP_NUM) {
-        const selfNum = process.env.WHATSAPP_NUM.replace(/\D/g, '').replace(/^91/, '');
+      const selfSendNumber = settings.selfSendNumber || process.env.WHATSAPP_NUM;
+      if (settings.whatsappEnabled && settings.selfInvoiceMessageEnabled && selfSendNumber) {
+        const selfNum = selfSendNumber.replace(/\D/g, '').replace(/^91/, '');
         if (selfNum) {
-          await whatsappService.sendInvoiceMessage('+91' + selfNum, payload);
+          await whatsappService.sendInvoiceMessage('+91' + selfNum, payload, whatsappConfig);
         }
       }
     } catch (whatsappError) {

@@ -14,17 +14,22 @@ class BranchController {
    */
   async createBranch(req, res, next) {
     try {
-      const { name, address } = req.body;
+      const { name, address, phoneNumber, whatsappNumberId } = req.body;
 
       // Validation
-      if (!name || !address) {
-        return badRequestResponse(res, 'Name and address are required');
+      if (!name || !address || !phoneNumber || !whatsappNumberId) {
+        return badRequestResponse(
+          res,
+          'name, address, phoneNumber, and whatsappNumberId are required'
+        );
       }
 
       // Create branch
       const branch = await branchService.createBranch({
         name,
         address,
+        phoneNumber,
+        whatsappNumberId,
       });
 
       return createdResponse(res, MESSAGES.BRANCH_CREATED, branch);
