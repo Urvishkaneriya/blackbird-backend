@@ -267,6 +267,7 @@ Settings now include additional WhatsApp fields:
 2. `wpAccountId` (WhatsApp Business account id)
 3. `selfSendNumber` (number to receive self invoice copy)
 4. `wpMediaId` (Meta media id for marketing template header image)
+5. `wpDefaultNumberId` (default sender number id for all marketing sends)
 
 Updated settings payload:
 
@@ -279,7 +280,8 @@ Updated settings payload:
   "wpToken": "EAAXXX...",
   "wpAccountId": "1080651450854191",
   "selfSendNumber": "9876543210",
-  "wpMediaId": "1915798535743551"
+  "wpMediaId": "1915798535743551",
+  "wpDefaultNumberId": "1020009854522750"
 }
 ```
 
@@ -290,9 +292,10 @@ Updated settings payload:
 3. Token/account are read from settings (`wpToken`, `wpAccountId`) with env fallback.
 4. Self invoice copy is sent to `settings.selfSendNumber` with env `WHATSAPP_NUM` fallback.
 5. Marketing header image uses `settings.wpMediaId` with env `WHATSAPP_MEDIA_ID` fallback.
+6. Marketing sender number id always uses `settings.wpDefaultNumberId` (same for single/list/branch_customers/all_customers) with env `TEST_NUM_ID` fallback.
 
 ### Frontend impact
 
 1. Branch create/edit form must include `phoneNumber` and `whatsappNumberId`.
-2. Admin settings page must include `wpToken`, `wpAccountId`, `selfSendNumber`, `wpMediaId`.
+2. Admin settings page must include `wpToken`, `wpAccountId`, `selfSendNumber`, `wpMediaId`, `wpDefaultNumberId`.
 3. Existing branch rows without `whatsappNumberId` should be updated before relying on WhatsApp sends.

@@ -1397,6 +1397,7 @@
                   "    pm.expect(jsonData.data).to.have.property('wpAccountId');",
                   "    pm.expect(jsonData.data).to.have.property('selfSendNumber');",
                   "    pm.expect(jsonData.data).to.have.property('wpMediaId');",
+                  "    pm.expect(jsonData.data).to.have.property('wpDefaultNumberId');",
                   "});"
                 ]
               }
@@ -1415,7 +1416,7 @@
                 "settings"
               ]
             },
-            "description": "Get app settings (admin only). Returns whatsappEnabled, reminderEnabled, reminderTimeDays, selfInvoiceMessageEnabled, wpToken, wpAccountId, selfSendNumber, wpMediaId."
+            "description": "Get app settings (admin only). Returns whatsappEnabled, reminderEnabled, reminderTimeDays, selfInvoiceMessageEnabled, wpToken, wpAccountId, selfSendNumber, wpMediaId, wpDefaultNumberId."
           },
           "response": [
             {
@@ -1429,7 +1430,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\"message\": \"Settings fetched successfully\", \"data\": {\"_id\": \"678s001\", \"whatsappEnabled\": true, \"reminderEnabled\": true, \"reminderTimeDays\": 60, \"selfInvoiceMessageEnabled\": true, \"wpToken\": \"\", \"wpAccountId\": \"\", \"selfSendNumber\": \"\", \"wpMediaId\": \"\", \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T10:00:00.000Z\"}}"
+              "body": "{\"message\": \"Settings fetched successfully\", \"data\": {\"_id\": \"678s001\", \"whatsappEnabled\": true, \"reminderEnabled\": true, \"reminderTimeDays\": 60, \"selfInvoiceMessageEnabled\": true, \"wpToken\": \"\", \"wpAccountId\": \"\", \"selfSendNumber\": \"\", \"wpMediaId\": \"\", \"wpDefaultNumberId\": \"\", \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T10:00:00.000Z\"}}"
             }
           ]
         },
@@ -1460,7 +1461,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"whatsappEnabled\": true,\n  \"reminderEnabled\": true,\n  \"reminderTimeDays\": 60,\n  \"selfInvoiceMessageEnabled\": true,\n  \"wpToken\": \"{{wpToken}}\",\n  \"wpAccountId\": \"{{wpAccountId}}\",\n  \"selfSendNumber\": \"{{selfSendNumber}}\",\n  \"wpMediaId\": \"{{wpMediaId}}\"\n}"
+              "raw": "{\n  \"whatsappEnabled\": true,\n  \"reminderEnabled\": true,\n  \"reminderTimeDays\": 60,\n  \"selfInvoiceMessageEnabled\": true,\n  \"wpToken\": \"{{wpToken}}\",\n  \"wpAccountId\": \"{{wpAccountId}}\",\n  \"selfSendNumber\": \"{{selfSendNumber}}\",\n  \"wpMediaId\": \"{{wpMediaId}}\",\n  \"wpDefaultNumberId\": \"{{wpDefaultNumberId}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/settings",
@@ -1472,7 +1473,7 @@
                 "settings"
               ]
             },
-            "description": "Update settings (admin only). Body: whatsappEnabled?, reminderEnabled?, reminderTimeDays? (min 1), selfInvoiceMessageEnabled?, wpToken?, wpAccountId?, selfSendNumber?, wpMediaId?."
+            "description": "Update settings (admin only). Body: whatsappEnabled?, reminderEnabled?, reminderTimeDays? (min 1), selfInvoiceMessageEnabled?, wpToken?, wpAccountId?, selfSendNumber?, wpMediaId?, wpDefaultNumberId?."
           },
           "response": [
             {
@@ -1486,7 +1487,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\"message\": \"Settings updated successfully\", \"data\": {\"_id\": \"678s001\", \"whatsappEnabled\": true, \"reminderEnabled\": true, \"reminderTimeDays\": 60, \"selfInvoiceMessageEnabled\": true, \"wpToken\": \"EAAXXX...\", \"wpAccountId\": \"1080651450854191\", \"selfSendNumber\": \"9876543210\", \"wpMediaId\": \"1915798535743551\", \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T12:00:00.000Z\"}}"
+              "body": "{\"message\": \"Settings updated successfully\", \"data\": {\"_id\": \"678s001\", \"whatsappEnabled\": true, \"reminderEnabled\": true, \"reminderTimeDays\": 60, \"selfInvoiceMessageEnabled\": true, \"wpToken\": \"EAAXXX...\", \"wpAccountId\": \"1080651450854191\", \"selfSendNumber\": \"9876543210\", \"wpMediaId\": \"1915798535743551\", \"wpDefaultNumberId\": \"1020009854522750\", \"createdAt\": \"2026-01-19T10:00:00.000Z\", \"updatedAt\": \"2026-01-19T12:00:00.000Z\"}}"
             }
           ]
         }

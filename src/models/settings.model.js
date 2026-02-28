@@ -40,6 +40,11 @@ const settingsSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    wpDefaultNumberId: {
+      type: String,
+      trim: true,
+      default: '',
+    },
   },
   {
     timestamps: true,

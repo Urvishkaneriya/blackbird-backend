@@ -16,7 +16,7 @@ async function getSettings(req, res, next) {
 
 /**
  * PUT /api/settings - Update settings (admin only)
- * Body: { whatsappEnabled?, reminderEnabled?, reminderTimeDays?, selfInvoiceMessageEnabled?, wpToken?, wpAccountId?, selfSendNumber?, wpMediaId? }
+ * Body: { whatsappEnabled?, reminderEnabled?, reminderTimeDays?, selfInvoiceMessageEnabled?, wpToken?, wpAccountId?, selfSendNumber?, wpMediaId?, wpDefaultNumberId? }
  */
 async function updateSettings(req, res, next) {
   try {

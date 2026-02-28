@@ -9,6 +9,7 @@ const DEFAULT_SETTINGS = {
   wpAccountId: '',
   selfSendNumber: '',
   wpMediaId: '',
+  wpDefaultNumberId: '',
 };
 
 /**
@@ -56,6 +57,9 @@ async function updateSettings(updateData) {
     payload.selfSendNumber = String(updateData.selfSendNumber || '').replace(/\D/g, '');
   }
   if (updateData.wpMediaId !== undefined) payload.wpMediaId = String(updateData.wpMediaId || '').trim();
+  if (updateData.wpDefaultNumberId !== undefined) {
+    payload.wpDefaultNumberId = String(updateData.wpDefaultNumberId || '').trim();
+  }
 
   let settings = await Settings.findOne();
   if (!settings) {

@@ -175,6 +175,7 @@ class MarketingSendService {
       token: settings.wpToken || process.env.WHATSAPP_TOKEN,
       accountId: settings.wpAccountId || process.env.WHATSAPP_ACCOUNT_ID,
       mediaId: settings.wpMediaId || process.env.WHATSAPP_MEDIA_ID,
+      numberId: settings.wpDefaultNumberId || process.env.TEST_NUM_ID,
     };
 
     // Validate required parameters
@@ -217,16 +218,12 @@ class MarketingSendService {
         const toSend = phoneFormatted ? `+91${phoneFormatted}` : null;
 
         if (toSend) {
-          const whatsappConfig = {
-            ...defaultWhatsAppConfig,
-            numberId: item.branch?.whatsappNumberId || process.env.TEST_NUM_ID,
-          };
           const result = await whatsappService.sendMarketingMessage(
             toSend,
             template.whatsappTemplateName,
             template.languageCode,
             orderedParams,
-            whatsappConfig
+            defaultWhatsAppConfig
           );
 
           if (result.success) {
