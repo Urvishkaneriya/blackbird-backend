@@ -5,6 +5,14 @@ const authenticateToken = require('../middlewares/auth.middleware');
 const isAdmin = require('../middlewares/admin.middleware');
 
 router.use(authenticateToken);
+
+/**
+ * @route   GET /api/products
+ * @desc    Get products
+ * @access  Private (Admin, Employee)
+ */
+router.get('/', productController.getProducts);
+
 router.use(isAdmin);
 
 /**
@@ -13,13 +21,6 @@ router.use(isAdmin);
  * @access  Private (Admin only)
  */
 router.post('/', productController.createProduct);
-
-/**
- * @route   GET /api/products
- * @desc    Get products
- * @access  Private (Admin only)
- */
-router.get('/', productController.getProducts);
 
 /**
  * @route   PUT /api/products/:id
