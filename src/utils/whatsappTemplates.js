@@ -5,8 +5,11 @@
 
 const TEMPLATE_NAMES = {
   BLACKBIRD_INVOICE: 'blackbird_invoice',
-  BLACKBIRD_CHECKUP_REMINDER: 'blackbird_checkup_reminder',
+  BLACKBIRD_CHECKUP_REMINDER: 'blackbird_checkup_reminder_v1',
 };
+
+/** Meta language for checkup reminder (approved as English in WhatsApp Manager) */
+const CHECKUP_REMINDER_LANGUAGE = 'en';
 
 const DEFAULT_LANGUAGE = 'en';
 
@@ -103,18 +106,40 @@ function getBlackbirdInvoicePayload(bookingData) {
   return buildTemplatePayload(TEMPLATE_NAMES.BLACKBIRD_INVOICE, bodyParameters);
 }
 
-function getBlackbirdCheckupReminderPayload(fullName, daysPassed) {
+/**
+ * Format branch helpline for reminder template {{2}} (with +91 prefix).
+ */
+function formatBranchHelpline(phone) {
+  if (!phone) return '-';
+  const digits = String(phone).replace(/\D/g, '');
+  if (!digits) return '-';
+  const local = digits.replace(/^91/, '');
+  return local ? `+91${local}` : '-';
+}
+
+/**
+ * Checkup reminder v1 (Gujarati):
+ * {{1}} days since tattoo session
+ * {{2}} branch helpline with +91 prefix
+ */
+function getBlackbirdCheckupReminderPayload(daysPassed, branchPhone) {
   const bodyParameters = [
-    fullName || 'Customer',
     String(daysPassed ?? 0),
+    formatBranchHelpline(branchPhone),
   ];
-  return buildTemplatePayload(TEMPLATE_NAMES.BLACKBIRD_CHECKUP_REMINDER, bodyParameters);
+  return buildTemplatePayload(
+    TEMPLATE_NAMES.BLACKBIRD_CHECKUP_REMINDER,
+    bodyParameters,
+    CHECKUP_REMINDER_LANGUAGE
+  );
 }
 
 module.exports = {
   TEMPLATE_NAMES,
   DEFAULT_LANGUAGE,
+  CHECKUP_REMINDER_LANGUAGE,
   normalizeLanguageCode,
+  formatBranchHelpline,
   buildTemplatePayload,
   getBlackbirdInvoicePayload,
   getBlackbirdCheckupReminderPayload,

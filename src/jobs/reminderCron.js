@@ -37,14 +37,19 @@ async function runReminderJob() {
       ],
     })
       .populate('userId', 'fullName phone')
-      .populate('branchId', 'name branchNumber whatsappNumberId')
+      .populate('branchId', 'name branchNumber phoneNumber whatsappNumberId')
       .lean();
 
     for (const booking of bookings) {
       const phone = booking.phone || booking.userId?.phone;
       if (!phone) continue;
 
-      const fullName = booking.fullName || booking.userId?.fullName || 'Customer';
+      const branchPhone = booking.branchId?.phoneNumber;
+      if (!branchPhone) {
+        console.warn(`Reminder cron: branch phone missing for booking ${booking._id}; skipping`);
+        continue;
+      }
+
       const daysPassed = Math.floor(
         (Date.now() - new Date(booking.date).getTime()) / (24 * 60 * 60 * 1000)
       );
@@ -59,7 +64,7 @@ async function runReminderJob() {
       };
       const result = await whatsappService.sendReminderMessage(
         toSend,
-        { fullName, daysPassed },
+        { daysPassed, branchPhone },
         whatsappConfig
       );
       if (result.success) {

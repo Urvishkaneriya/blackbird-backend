@@ -65,7 +65,7 @@ class WhatsAppService {
       }
 
       const formattedPhone = phone.replace(/\D/g, '');
-      const template = getBlackbirdCheckupReminderPayload(data.fullName, data.daysPassed);
+      const template = getBlackbirdCheckupReminderPayload(data.daysPassed, data.branchPhone);
       const apiUrl = `https://graph.facebook.com/v18.0/${resolvedConfig.numberId}/messages`;
       const payload = {
         messaging_product: 'whatsapp',
